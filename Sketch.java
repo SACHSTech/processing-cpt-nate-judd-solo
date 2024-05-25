@@ -1,144 +1,147 @@
 import processing.core.PApplet;
 import processing.core.PImage;
 
+/**
+ * discription
+ * 
+ * @author NJudd
+ */
 public class Sketch extends PApplet {
-  // Variables and images used for the background
-  PImage imgMainBG;
-  int intScreenW = 800;
-  int intScreenH = 700;
-  int intSpeedBG = 3;
+  PImage imgMainBG, imgMC;
+  int intScreenW = 800, intScreenH = 700;
   float fltXPosBG = 0;
-
-  // Variables and images used for the main character
-  PImage imgMC;
-  int intWidthMC = 60;
-  int intHeightMC = 70;
-  int intSpeed;
-  int intWalk = 3;
-  int intSprint = 5;
-  int intJumpSpeed = 5;
-  int intJumpDuration = 30;
-  float fltXPos = 100;
-  float fltYPos = 400;
-  float fltJumpHeight = 125;
-  float fltFallSpeed = 5;
-  float fltPreJumpYPos = fltYPos;
-  boolean blnJump = false;
-  boolean blnLeft = false;
-  boolean blnRight = false;
-  boolean blnPeakReached = false;
-  boolean blnSprint = false;
+  int intWidthMC = 60, intHeightMC = 70;
+  float fltXPos = 100, fltYPos = 400, fltPreJumpPos = fltYPos;
+  float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeed = 5, fltJumpSpeed = -8, fltSprintSpeed;
+  float fltAccel = 0.2f, fltDecel = 0.1f, fltGravity = 0.3f;
+  boolean blnJump = false, blnLeft = false, blnRight = false, blnSprint = false;
 
   /**
-   * Initializes background size
+   * Initializes the size of the canvas.
    */
   public void settings() {
-    // Background size
     size(intScreenW, intScreenH);
   }
 
   /**
-   * Sets up the initial environment
+   * Sets up the initial environment by loading and resizing images.
    */
   public void setup() {
-    // Loads the main background image
     imgMainBG = loadImage("MainBG.jpeg");
     imgMainBG.resize(intScreenW, intScreenH);
-
-    // Loads the main character image
     imgMC = loadImage("MainCharacter.png");
     imgMC.resize(intWidthMC, intHeightMC);
-
   }
 
   /**
-   * Top level method to execute the program
+   * Draws the frame and updates the positions of the background and main
+   * character.
    */
   public void draw() {
-    // Clears the background
     background(255);
-
-    // Print the background image
     image(imgMainBG, fltXPosBG, 0);
     image(imgMainBG, fltXPosBG + intScreenW, 0);
 
-    // Changes background speed when sprinting
+    // Calculate maximum speed in the sprinting state
     if (blnSprint) {
-      intSpeedBG = intSprint;
+      fltSprintSpeed = fltMaxSpeed;
     } else {
-      intSpeedBG = intWalk;
+      // Speed is reduced to 60% of the maximum sprint speed
+      fltSprintSpeed = fltMaxSpeed * 0.6f;
     }
 
-    // Updates backgorund to achieve scrolling effect
-    if (blnRight && fltXPos > width / 2 - 75) { // substracting 75 gives the player more vision in front of them
-      fltXPosBG -= intSpeedBG;
-    } else if (blnRight) {
-      fltXPos += intSpeed;
+    // Horizontal movement logic
+    if (blnRight) {
+      // Accelerate right
+      fltXSpeed += fltAccel;
+      if (fltXSpeed > fltSprintSpeed) {
+        fltXSpeed = fltSprintSpeed;
+      }
+      // Move character and background
+      if (fltXPos > width / 2 - intWidthMC) {
+        fltXPosBG -= fltXSpeed;
+      } else {
+        fltXPos += fltXSpeed;
+      }
+    } else if (blnLeft) {
+      // Accelerate left
+      fltXSpeed -= fltAccel;
+      if (fltXSpeed < -fltSprintSpeed) {
+        fltXSpeed = -fltSprintSpeed;
+      }
+      // Move character
+      fltXPos += fltXSpeed;
+    } else {
+      // Decelerate if no movement
+      if (fltXSpeed > 0) {
+        fltXSpeed -= fltDecel;
+        if (fltXSpeed < 0)
+          fltXSpeed = 0;
+        fltXPos += fltXSpeed;
+      } else if (fltXSpeed < 0) {
+        fltXSpeed += fltDecel;
+        if (fltXSpeed > 0)
+          fltXSpeed = 0;
+        fltXPos += fltXSpeed;
+      }
     }
+
+    // Reset background position if it goes off screen
     if (fltXPosBG <= -width) {
       fltXPosBG = 0;
     }
 
-    // Main character's horizontal movement
-    if (blnLeft) {
-      fltXPos -= intSpeed;
+    // Clamp character position to stay on screen
+    if (fltXPos > width / 2 - intWidthMC / 2) {
+      fltXPos = width / 2 - intWidthMC / 2;
     }
 
-    // Main character's sprinting
-    if (blnSprint) {
-      intSpeed = intSprint;
-    } else {
-      intSpeed = intWalk;
-    }
-
-    // Checks if the main character has jumped
+    // Vertical movement logic (jumping and gravity)
     if (blnJump) {
-      // Alters main characters y position until they reach the peak of their jump
-      if (fltYPos > fltPreJumpYPos - fltJumpHeight && blnPeakReached == false) {
-        fltYPos -= intJumpSpeed;
-      } else if (fltYPos < fltPreJumpYPos) { // Going down after jumping
-        fltFallSpeed += 0.1;
-        fltYPos += fltFallSpeed;
-        blnPeakReached = true;
-      } else if (fltYPos >= fltPreJumpYPos) { // Resets so  can jump again
-        fltYPos = fltPreJumpYPos;
-        blnPeakReached = false;
+      if (fltYPos >= fltPreJumpPos) {
+        // Start jump
+        fltYSpeed = fltJumpSpeed;
         blnJump = false;
-        fltFallSpeed = 4;
       }
     }
 
-    // Prints the main character to the screen
+    // Apply gravity
+    fltYSpeed += fltGravity;
+    fltYPos += fltYSpeed;
+
+    // Reset vertical position if on ground
+    if (fltYPos >= fltPreJumpPos) {
+      fltYPos = fltPreJumpPos;
+      fltYSpeed = 0;
+    }
+
+    // Draw character
     image(imgMC, fltXPos, fltYPos);
   }
 
   /**
-   * Checks if keys have been pressed
+   * Handles key press events to control the main character's movements.
    */
   public void keyPressed() {
-    // main character movement
-    if (keyCode == UP) {
+    if (keyCode == UP && fltYPos == fltPreJumpPos)
       blnJump = true;
-    } else if (keyCode == LEFT) {
+    if (keyCode == LEFT)
       blnLeft = true;
-    } else if (keyCode == RIGHT) {
+    if (keyCode == RIGHT)
       blnRight = true;
-    } else if (key == 'z') {
+    if (key == 'z')
       blnSprint = true;
-    }
   }
 
   /**
-   * Checks if keys have been pressed
+   * Handles key release events to control the main character's movements.
    */
   public void keyReleased() {
-    // Main character movement
-    if (keyCode == LEFT) {
+    if (keyCode == LEFT)
       blnLeft = false;
-    } else if (keyCode == RIGHT) {
+    if (keyCode == RIGHT)
       blnRight = false;
-    } else if (key == 'z') {
+    if (key == 'z')
       blnSprint = false;
-    }
   }
 }
