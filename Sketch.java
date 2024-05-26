@@ -7,8 +7,8 @@ import processing.core.PImage;
  * @author NJudd
  */
 public class Sketch extends PApplet {
-  // Images
-  PImage imgMainBG, imgMC, imgCrouch, imgDash;
+  // Character and background images
+  PImage imgMainBG, imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgDash, imgDashR, imgDashL, imgRight, imgLeft;
   // Background
   int intScreenW = 1000, intScreenH = 800;
   float fltXPosBG = 0;
@@ -37,14 +37,26 @@ public class Sketch extends PApplet {
    * Sets up the initial environment by loading and resizing images.
    */
   public void setup() {
+    // Background
     imgMainBG = loadImage("MainBG.jpeg");
     imgMainBG.resize(intScreenW, intScreenH);
-    imgMC = loadImage("MainCharacter.png");
-    imgMC.resize(intWidthMC, intHeightMC);
-    imgCrouch = loadImage("MainCharacter.png");
-    imgCrouch.resize(intWidthMC, intCrouchHeightMC);
-    imgDash = loadImage("DashMC.png");
-    imgDash.resize(intWidthMC, intHeightMC);
+
+    // Character
+    imgRight = loadImage("MainCharacter.png");
+    imgRight.resize(intWidthMC, intHeightMC);
+    imgLeft = loadImage("LeftMC.png");
+    imgLeft.resize(intWidthMC, intHeightMC);
+    imgCrouchR = loadImage("MainCharacter.png");
+    imgCrouchR.resize(intWidthMC, intCrouchHeightMC);
+    imgCrouchL = loadImage("LeftMC.png");
+    imgCrouchL.resize(intWidthMC, intCrouchHeightMC);
+    imgDashR = loadImage("DashMC.png");
+    imgDashR.resize(intWidthMC, intHeightMC);
+    imgDashL = loadImage("DashLeft.png");
+    imgDashL.resize(intWidthMC, intHeightMC);
+    imgCrouch = imgCrouchR;
+    imgDash = imgDashR;
+    imgMC = imgRight;
   }
 
   /**
@@ -66,6 +78,10 @@ public class Sketch extends PApplet {
 
     // Horizontal movement logic
     if (blnRight) {
+      // Change the direction of the character
+      imgMC = imgRight;
+      imgDash = imgDashR;
+      imgCrouch = imgCrouchR;
       // Accelerate right
       fltXSpeed += fltAccel;
       if (fltXSpeed > fltSprintSpeed) {
@@ -78,6 +94,10 @@ public class Sketch extends PApplet {
         fltXPos += fltXSpeed;
       }
     } else if (blnLeft) {
+      // Change the direction of the character
+      imgMC = imgLeft;
+      imgDash = imgDashL;
+      imgCrouch = imgCrouchL;
       // Accelerate left
       fltXSpeed -= fltAccel;
       if (fltXSpeed < -fltSprintSpeed) {
@@ -108,6 +128,8 @@ public class Sketch extends PApplet {
     // Clamp character position to stay on screen
     if (fltXPos >= width / 2 - intWidthMC) {
       fltXPos = width / 2 - intWidthMC;
+    } else if (fltXPos < 0) {
+      fltXPos = 0;
     }
 
     // Vertical movement logic (jumping and gravity)
@@ -157,27 +179,41 @@ public class Sketch extends PApplet {
 
     // Draws the character then alters its movement based on its state
     if (blnCrouch) {
+      // Alters movement in crouch position
       fltJumpHeight = -6;
       fltMaxSpeed = 3;
+
       // Draws dash timer
       textSize(20);
       textAlign(CENTER, CENTER);
       text(strDashDisplay, fltXPos + intWidthMC / 2, fltYPos + 10);
+
       // Draws character
       image(imgCrouch, fltXPos, fltYPos + (intHeightMC - intCrouchHeightMC));
-    } else if (blnDash && fltXPos < fltDashDist) {
+
+      // Dash to the right
+    } else if (blnDash && fltXPos < fltDashDist && imgDash == imgDashR) {
       fltXPos += 10;
       image(imgDash, fltXPos, fltYPos);
+
+      // Dash to the left
+    } else if (blnDash && imgMC == imgLeft && fltXPos > fltDashDist) {
+      fltXPos -= 10;
+      image(imgDash, fltXPos, fltYPos);
+
+      // Resets charcter to normal state
     } else {
       blnDash = false;
       fltDashDist = 0;
       fltPreDashPos = 0;
       fltJumpHeight = -8;
       fltMaxSpeed = 5;
+
       // Draws dash timer
       textSize(20);
       textAlign(CENTER, CENTER);
       text(strDashDisplay, fltXPos + intWidthMC / 2, fltYPos - 15);
+
       // Draws character
       image(imgMC, fltXPos, fltYPos);
     }
@@ -196,7 +232,7 @@ public class Sketch extends PApplet {
     if (keyCode == RIGHT) {
       blnRight = true;
     }
-    if (key == 'z') {
+    if (key == 'z' && blnCrouch == false) {
       blnSprint = true;
     }
     if (key == 'x') {
@@ -205,12 +241,25 @@ public class Sketch extends PApplet {
     if (key == ' ' && blnCanDash) {
       blnDash = true;
       fltPreDashPos = fltXPos;
-      // Stops character from dashing past the middle of the screen
-      if (fltXPos >= width / 2 - intWidthMC - fltDashLength) {
-        fltDashDist = fltXPos + (width / 2 - fltXPos - intWidthMC); // Adds the distance from the middle
-      } else {
-        fltDashDist = fltXPos + fltDashLength;
+
+      // When facing right
+      if (imgDash == imgDashR) {
+        // Stops character from dashing past the middle of the screen
+        if (fltXPos >= width / 2 - intWidthMC - fltDashLength) {
+          fltDashDist = fltXPos + (width / 2 - fltXPos - intWidthMC); // Adds the distance from the middle
+        } else {
+          fltDashDist = fltXPos + fltDashLength;
+        }
+        // When facing left
+      } else if (imgDash == imgDashL) {
+        // Stops character from dashing off the left side of the screen
+        if (fltXPos <= fltDashLength) {
+          fltDashDist = fltXPos - fltXPos;
+        } else {
+          fltDashDist = fltXPos - fltDashLength - intWidthMC;
+        }
       }
+
       // Updates cooldown variables
       intLastDashTime = millis();
       blnCanDash = false;
