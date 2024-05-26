@@ -25,6 +25,10 @@ public class Sketch extends PApplet {
   int intDashCooldown = 5000, intLastDashTime = 0, intDashCount = 0;
   String strDashDisplay = "";
   boolean blnCanDash = true;
+  // Platform
+  Platform[] platform;
+  int intPlatformCount = 10;
+  int intBlockSize = 30;
 
   /**
    * Initializes the size of the canvas.
@@ -34,7 +38,7 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Sets up the initial environment by loading and resizing images.
+   * Sets up the initial environment.
    */
   public void setup() {
     // Background
@@ -57,6 +61,12 @@ public class Sketch extends PApplet {
     imgCrouch = imgCrouchR;
     imgDash = imgDashR;
     imgMC = imgRight;
+
+    // Creates platforms
+    platform = new Platform[intPlatformCount];
+    for (int i = 0; i < intPlatformCount; i++) {
+      platform[i] = new Platform(this, intBlockSize);
+    }
   }
 
   /**
@@ -216,6 +226,13 @@ public class Sketch extends PApplet {
 
       // Draws character
       image(imgMC, fltXPos, fltYPos);
+    }
+
+    // Prints moving platforms
+    for (int i = 0; i < intPlatformCount; i++) {
+      // Prints platforms
+      platform[i].platformShift();
+      platform[i].draw();
     }
   }
 
