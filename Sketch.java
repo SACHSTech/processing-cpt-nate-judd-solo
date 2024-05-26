@@ -7,14 +7,24 @@ import processing.core.PImage;
  * @author NJudd
  */
 public class Sketch extends PApplet {
-  PImage imgMainBG, imgMC;
-  int intScreenW = 800, intScreenH = 700;
+  // Images
+  PImage imgMainBG, imgMC, imgCrouch, imgDash;
+  // Background
+  int intScreenW = 1000, intScreenH = 800;
   float fltXPosBG = 0;
-  int intWidthMC = 60, intHeightMC = 70;
-  float fltXPos = 100, fltYPos = 400, fltPreJumpPos = fltYPos;
-  float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeed = 5, fltJumpSpeed = -8, fltSprintSpeed;
-  float fltAccel = 0.2f, fltDecel = 0.1f, fltGravity = 0.3f;
-  boolean blnJump = false, blnLeft = false, blnRight = false, blnSprint = false;
+  // Character
+  int intWidthMC = 60, intHeightMC = 70, intCrouchHeightMC = 45;
+  // Positions
+  float fltXPos = 100, fltYPos = 400, fltPreJumpPos = fltYPos, fltDashDist = 0, fltPreDashPos = 0;
+  // Speeds
+  float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeed = 5, fltJumpHeight = -8, fltDashLength = 150, fltSprintSpeed = 0;
+  float fltAccel = 0.3f, fltDecel = 0.2f, fltGravity = 0.3f;
+  // Movement
+  boolean blnJump = false, blnLeft = false, blnRight = false, blnSprint = false, blnCrouch = false, blnDash = false;
+  // Dashing
+  int intDashCooldown = 5000, intLastDashTime = 0, intDashCount = 0;
+  String strDashDisplay = "";
+  boolean blnCanDash = true;
 
   /**
    * Initializes the size of the canvas.
@@ -31,6 +41,10 @@ public class Sketch extends PApplet {
     imgMainBG.resize(intScreenW, intScreenH);
     imgMC = loadImage("MainCharacter.png");
     imgMC.resize(intWidthMC, intHeightMC);
+    imgCrouch = loadImage("MainCharacter.png");
+    imgCrouch.resize(intWidthMC, intCrouchHeightMC);
+    imgDash = loadImage("DashMC.png");
+    imgDash.resize(intWidthMC, intHeightMC);
   }
 
   /**
@@ -58,7 +72,7 @@ public class Sketch extends PApplet {
         fltXSpeed = fltSprintSpeed;
       }
       // Move character and background
-      if (fltXPos > width / 2 - intWidthMC) {
+      if (fltXPos >= width / 2 - intWidthMC) {
         fltXPosBG -= fltXSpeed;
       } else {
         fltXPos += fltXSpeed;
@@ -92,15 +106,15 @@ public class Sketch extends PApplet {
     }
 
     // Clamp character position to stay on screen
-    if (fltXPos > width / 2 - intWidthMC / 2) {
-      fltXPos = width / 2 - intWidthMC / 2;
+    if (fltXPos >= width / 2 - intWidthMC) {
+      fltXPos = width / 2 - intWidthMC;
     }
 
     // Vertical movement logic (jumping and gravity)
     if (blnJump) {
       if (fltYPos >= fltPreJumpPos) {
         // Start jump
-        fltYSpeed = fltJumpSpeed;
+        fltYSpeed = fltJumpHeight;
         blnJump = false;
       }
     }
@@ -115,33 +129,109 @@ public class Sketch extends PApplet {
       fltYSpeed = 0;
     }
 
-    // Draw character
-    image(imgMC, fltXPos, fltYPos);
+    // Checks if character can dash
+    if (!blnCanDash && millis() - intLastDashTime >= intDashCooldown) {
+      blnCanDash = true;
+    }
+
+    // Calculates dash timer
+    if (blnCanDash) {
+      intDashCount = 0;
+      strDashDisplay = "DASH";
+    } else if (millis() - intLastDashTime < 1000) {
+      intDashCount = 5;
+      strDashDisplay = "" + intDashCount;
+    } else if (millis() - intLastDashTime < 2000) {
+      intDashCount = 4;
+      strDashDisplay = "" + intDashCount;
+    } else if (millis() - intLastDashTime < 3000) {
+      intDashCount = 3;
+      strDashDisplay = "" + intDashCount;
+    } else if (millis() - intLastDashTime < 4000) {
+      intDashCount = 2;
+      strDashDisplay = "" + intDashCount;
+    } else if (millis() - intLastDashTime < 5000) {
+      intDashCount = 1;
+      strDashDisplay = "" + intDashCount;
+    }
+
+    // Draws the character then alters its movement based on its state
+    if (blnCrouch) {
+      fltJumpHeight = -6;
+      fltMaxSpeed = 3;
+      // Draws dash timer
+      textSize(20);
+      textAlign(CENTER, CENTER);
+      text(strDashDisplay, fltXPos + intWidthMC / 2, fltYPos + 10);
+      // Draws character
+      image(imgCrouch, fltXPos, fltYPos + (intHeightMC - intCrouchHeightMC));
+    } else if (blnDash && fltXPos < fltDashDist) {
+      fltXPos += 10;
+      image(imgDash, fltXPos, fltYPos);
+    } else {
+      blnDash = false;
+      fltDashDist = 0;
+      fltPreDashPos = 0;
+      fltJumpHeight = -8;
+      fltMaxSpeed = 5;
+      // Draws dash timer
+      textSize(20);
+      textAlign(CENTER, CENTER);
+      text(strDashDisplay, fltXPos + intWidthMC / 2, fltYPos - 15);
+      // Draws character
+      image(imgMC, fltXPos, fltYPos);
+    }
   }
 
   /**
    * Handles key press events to control the main character's movements.
    */
   public void keyPressed() {
-    if (keyCode == UP && fltYPos == fltPreJumpPos)
+    if (keyCode == UP && fltYPos == fltPreJumpPos) {
       blnJump = true;
-    if (keyCode == LEFT)
+    }
+    if (keyCode == LEFT) {
       blnLeft = true;
-    if (keyCode == RIGHT)
+    }
+    if (keyCode == RIGHT) {
       blnRight = true;
-    if (key == 'z')
+    }
+    if (key == 'z') {
       blnSprint = true;
+    }
+    if (key == 'x') {
+      blnCrouch = true;
+    }
+    if (key == ' ' && blnCanDash) {
+      blnDash = true;
+      fltPreDashPos = fltXPos;
+      // Stops character from dashing past the middle of the screen
+      if (fltXPos >= width / 2 - intWidthMC - fltDashLength) {
+        fltDashDist = fltXPos + (width / 2 - fltXPos - intWidthMC); // Adds the distance from the middle
+      } else {
+        fltDashDist = fltXPos + fltDashLength;
+      }
+      // Updates cooldown variables
+      intLastDashTime = millis();
+      blnCanDash = false;
+    }
   }
 
   /**
    * Handles key release events to control the main character's movements.
    */
   public void keyReleased() {
-    if (keyCode == LEFT)
+    if (keyCode == LEFT) {
       blnLeft = false;
-    if (keyCode == RIGHT)
+    }
+    if (keyCode == RIGHT) {
       blnRight = false;
-    if (key == 'z')
+    }
+    if (key == 'z') {
       blnSprint = false;
+    }
+    if (key == 'x') {
+      blnCrouch = false;
+    }
   }
 }
