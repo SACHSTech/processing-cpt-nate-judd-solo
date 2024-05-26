@@ -65,7 +65,7 @@ public class Sketch extends PApplet {
     // Creates platforms
     platform = new Platform[intPlatformCount];
     for (int i = 0; i < intPlatformCount; i++) {
-      platform[i] = new Platform(this, intBlockSize);
+      platform[i] = new Platform(this, intBlockSize, platform);
     }
   }
 
