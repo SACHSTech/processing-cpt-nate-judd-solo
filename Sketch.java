@@ -35,6 +35,10 @@ public class Sketch extends PApplet {
   // Starting platform
   int intStartPlatLength = 5;
   float fltStartPlatX = 10;
+  // Initializes variables for lives
+  PImage imgLives;
+  int intLifeSize = 30;
+  int intLifeCount = 5;
 
   /**
    * Initializes the size of the canvas.
@@ -76,6 +80,10 @@ public class Sketch extends PApplet {
     for (int i = 0; i < intPlatformCount; i++) {
       platforms.add(new Platform(this, intBlockSize, platforms));
     }
+
+    // Lives image
+    imgLives = loadImage("heart.png");
+    imgLives.resize(intLifeSize, intLifeSize);
   }
 
   /**
@@ -86,6 +94,12 @@ public class Sketch extends PApplet {
     background(255);
     image(imgMainBG, fltXPosBG, 0);
     image(imgMainBG, fltXPosBG + intScreenW, 0);
+
+    // Draws lives of the screen
+
+    for (int i = intLifeCount; i >= 0; i--) {
+      image(imgLives, 965 - i * 5 - i * intLifeSize, 5);
+    }
 
     // Calculate maximum speed in the sprinting state
     if (blnSprint) {
@@ -179,8 +193,9 @@ public class Sketch extends PApplet {
     }
 
     // Stops character from going inside the initial platform
-    if (fltYPos + intHeightMC > height - intBlockSize - 10 && fltXPos < intBlockSize * intStartPlatLength + fltStartPlatX) {
-        fltXPos = intBlockSize * intStartPlatLength + fltStartPlatX;
+    if (fltYPos + intHeightMC > height - intBlockSize - 10
+        && fltXPos < intBlockSize * intStartPlatLength + fltStartPlatX) {
+      fltXPos = intBlockSize * intStartPlatLength + fltStartPlatX;
     }
 
     // Checks if character can dash
