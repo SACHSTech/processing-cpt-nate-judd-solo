@@ -4,7 +4,7 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 /**
- * discription
+ * The main code of the Rooftop Runner game.
  * 
  * @author NJudd
  */
@@ -17,7 +17,7 @@ public class Sketch extends PApplet {
   // Character
   int intWidthMC = 60, intHeightMC = 70, intCrouchHeightMC = 45;
   // Positions
-  float fltXPos = 100, fltYPos = 400, fltPreJumpPos = fltYPos, fltDashDist = 0, fltPreDashPos = 0;
+  float fltXPos = 55, fltYPos = 600, fltPreJumpPos = 0, fltDashDist = 0, fltPreDashPos = 0;
   // Speeds
   float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeed = 5, fltJumpHeight = -8, fltDashLength = 150, fltSprintSpeed = 0;
   float fltAccel = 0.3f, fltDecel = 0.2f, fltGravity = 0.3f;
@@ -28,9 +28,13 @@ public class Sketch extends PApplet {
   String strDashDisplay = "";
   boolean blnCanDash = true;
   // Platform
+  PImage imgBlock;
   ArrayList<Platform> platforms = new ArrayList<Platform>();
   int intPlatformCount = 6;
   int intBlockSize = 30;
+  // Starting platform
+  int intStartPlatLength = 5;
+  float fltStartPlatX = 10;
 
   /**
    * Initializes the size of the canvas.
@@ -63,6 +67,10 @@ public class Sketch extends PApplet {
     imgCrouch = imgCrouchR;
     imgDash = imgDashR;
     imgMC = imgRight;
+
+    // Platform
+    imgBlock = loadImage("platformBlock.png");
+    imgBlock.resize(intBlockSize, intBlockSize);
 
     // Creates platforms
     for (int i = 0; i < intPlatformCount; i++) {
@@ -99,7 +107,7 @@ public class Sketch extends PApplet {
         fltXSpeed = fltSprintSpeed;
       }
       // Move character and background
-      if (fltXPos >= width / 2 - intWidthMC) {
+      if (fltXPos >= width - 200 - intWidthMC) {
         fltXPosBG -= fltXSpeed;
       } else {
         fltXPos += fltXSpeed;
@@ -137,11 +145,17 @@ public class Sketch extends PApplet {
     }
 
     // Clamp character position to stay on screen
-    if (fltXPos >= width / 2 - intWidthMC) {
-      fltXPos = width / 2 - intWidthMC;
+    if (fltXPos >= width - 200 - intWidthMC) {
+      fltXPos = width - 200 - intWidthMC;
     } else if (fltXPos < 0) {
       fltXPos = 0;
     }
+
+    // Apply gravity
+    fltYSpeed += fltGravity;
+
+    // Initializes the character's y position to a falling state
+    fltYPos += fltYSpeed;
 
     // Vertical movement logic (jumping and gravity)
     if (blnJump) {
@@ -152,14 +166,21 @@ public class Sketch extends PApplet {
       }
     }
 
-    // Apply gravity
-    fltYSpeed += fltGravity;
-    fltYPos += fltYSpeed;
+    // Draws initial platform
+    for (int i = 0; i < intStartPlatLength; i++) {
+      image(imgBlock, fltStartPlatX + i * intBlockSize, height - intBlockSize - 10);
+    }
 
-    // Reset vertical position if on ground
-    if (fltYPos >= fltPreJumpPos) {
-      fltYPos = fltPreJumpPos;
-      fltYSpeed = 0;
+    // Allows character to interact with the top of initial platform
+    if (fltYPos + intHeightMC >= height - intBlockSize - 10 && fltXPos + intWidthMC / 2 > fltStartPlatX
+        && fltXPos + intWidthMC / 2 < intBlockSize * intStartPlatLength + fltStartPlatX) {
+      fltYPos = height - intBlockSize - 10 - intHeightMC;
+      fltPreJumpPos = height - intBlockSize - 10 - intHeightMC;
+    }
+
+    // Stops character from going inside the initial platform
+    if (fltYPos + intHeightMC > height - intBlockSize - 10 && fltXPos < intBlockSize * intStartPlatLength + fltStartPlatX) {
+        fltXPos = intBlockSize * intStartPlatLength + fltStartPlatX;
     }
 
     // Checks if character can dash
@@ -263,8 +284,8 @@ public class Sketch extends PApplet {
       // When facing right
       if (imgDash == imgDashR) {
         // Stops character from dashing past the middle of the screen
-        if (fltXPos >= width / 2 - intWidthMC - fltDashLength) {
-          fltDashDist = fltXPos + (width / 2 - fltXPos - intWidthMC); // Adds the distance from the middle
+        if (fltXPos >= width - 200 - intWidthMC - fltDashLength) {
+          fltDashDist = fltXPos + (width - 210 - fltXPos - intWidthMC); // Adds the distance from the scrolling point
         } else {
           fltDashDist = fltXPos + fltDashLength;
         }
