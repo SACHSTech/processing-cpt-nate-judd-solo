@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 import processing.core.PApplet;
 import processing.core.PImage;
 
@@ -26,8 +28,8 @@ public class Sketch extends PApplet {
   String strDashDisplay = "";
   boolean blnCanDash = true;
   // Platform
-  Platform[] platform;
-  int intPlatformCount = 10;
+  ArrayList<Platform> platforms = new ArrayList<Platform>();
+  int intPlatformCount = 6;
   int intBlockSize = 30;
 
   /**
@@ -63,9 +65,8 @@ public class Sketch extends PApplet {
     imgMC = imgRight;
 
     // Creates platforms
-    platform = new Platform[intPlatformCount];
     for (int i = 0; i < intPlatformCount; i++) {
-      platform[i] = new Platform(this, intBlockSize, platform);
+      platforms.add(new Platform(this, intBlockSize, platforms));
     }
   }
 
@@ -229,10 +230,10 @@ public class Sketch extends PApplet {
     }
 
     // Prints moving platforms
-    for (int i = 0; i < intPlatformCount; i++) {
+    for (int i = 0; i < platforms.size(); i++) {
       // Prints platforms
-      platform[i].platformShift();
-      platform[i].draw();
+      platforms.get(i).platformShift(platforms);
+      platforms.get(i).draw();
     }
   }
 
