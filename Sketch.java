@@ -15,11 +15,11 @@ public class Sketch extends PApplet {
   int intScreenW = 1000, intScreenH = 800;
   float fltXPosBG = 0;
   // Character
-  int intWidthMC = 60, intHeightMC = 70, intCrouchHeightMC = 45;
+  int intWidthMC = 60, intHeightMC = 70, intCrouchHeightMC = 35;
   // Positions
   float fltXPos = 55, fltYPos = 600, fltPreJumpPos = 0, fltDashDist = 0, fltPreDashPos = 0;
   // Speeds
-  float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeed = 5, fltJumpHeight = -8, fltDashLength = 150, fltSprintSpeed = 0;
+  float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeed = 5, fltJumpHeight = -10, fltDashLength = 150, fltSprintSpeed = 0;
   float fltAccel = 0.3f, fltDecel = 0.2f, fltGravity = 0.3f;
   // Movement
   boolean blnJump = false, blnLeft = false, blnRight = false, blnSprint = false, blnCrouch = false, blnDash = false;
@@ -33,8 +33,10 @@ public class Sketch extends PApplet {
   int intPlatformCount = 6;
   int intBlockSize = 30;
   // Starting platform
-  int intStartPlatLength = 5;
-  float fltStartPlatX = 10;
+  int intPlat1Length = 5;
+  float fltPlat1X = 10;
+  float fltPlat1Y = intScreenH - intBlockSize - 10;
+  float fltPlat1X2 = intBlockSize * intPlat1Length + fltPlat1X;
   // Initializes variables for lives
   PImage imgLives;
   int intLifeSize = 30;
@@ -79,6 +81,9 @@ public class Sketch extends PApplet {
     // Creates platforms
     for (int i = 0; i < intPlatformCount; i++) {
       platforms.add(new Platform(this, intBlockSize, platforms));
+
+      // Staggers platforms x positions
+      platforms.get(i).setPlatformPositionX(width + 100 * i);
     }
 
     // Lives image
@@ -173,30 +178,31 @@ public class Sketch extends PApplet {
       }
     }
 
+    // Initializes character positions
+    float fltXPos2 = fltXPos + intWidthMC;
+    float fltYPos2 = fltYPos + intHeightMC;
+
     // Draws initial platform
-    for (int i = 0; i < intStartPlatLength; i++) {
-      image(imgBlock, fltStartPlatX + i * intBlockSize, height - intBlockSize - 10);
+    for (int i = 0; i < intPlat1Length; i++) {
+      image(imgBlock, fltPlat1X + i * intBlockSize, fltPlat1Y);
     }
 
     // Checks if character is standing on the initial platform
-    boolean blnOnStartPlatform = fltYPos + intHeightMC > height - intBlockSize - 10
-        && fltXPos + intWidthMC > fltStartPlatX
-        && fltXPos < intBlockSize * intStartPlatLength + fltStartPlatX;
+    boolean blnOnPlat1 = fltYPos2 > fltPlat1Y && fltXPos2 > fltPlat1X && fltXPos < fltPlat1X2;
 
-    if (blnOnStartPlatform) {
+    if (blnOnPlat1) {
       // Reset y speed only when the character is landing on the platform
       if (fltYSpeed > 0) {
         fltYSpeed = 0;
       }
       // Sets y position to the top of the start platform
-      fltYPos = height - intBlockSize - 10 - intHeightMC;
-      fltPreJumpPos = height - intBlockSize - 10 - intHeightMC;
+      fltYPos = fltPlat1Y - intHeightMC;
+      fltPreJumpPos = fltPlat1Y - intHeightMC;
     }
 
     // Stops character from going inside the initial platform
-    if (fltYPos > height - intBlockSize - 10 && fltXPos > fltStartPlatX
-        && fltXPos < intBlockSize * intStartPlatLength + fltStartPlatX) {
-      fltXPos = intBlockSize * intStartPlatLength + fltStartPlatX;
+    if (fltYPos > fltPlat1Y && fltXPos > fltPlat1X && fltXPos < fltPlat1X2) {
+      fltXPos = fltPlat1X2;
     }
 
     // Prints moving platforms
@@ -208,43 +214,39 @@ public class Sketch extends PApplet {
 
     // Iterates through each moving platform
     for (int i = 0; i < intPlatformCount; i++) {
-      // Checks if the character is on top of a moving platform
-      if (fltYPos + intHeightMC > platforms.get(i).getPlatformPositionY()
-          && fltYPos < platforms.get(i).getPlatformPositionY()
-          && fltXPos + intWidthMC / 2 > platforms.get(i).getPlatformPositionX()
-          && fltXPos < platforms.get(i).getPlatformPositionX() + intBlockSize * platforms.get(i).getPlatformLength()
-              + 30) {
+      // Initializes attribtues of the moving platforms
+      float fltPlatX1 = platforms.get(i).getPlatformPositionX();
+      float fltPlatY1 = platforms.get(i).getPlatformPositionY();
+      float fltPlatL = platforms.get(i).getPlatformLength();
+      float fltPlatS = platforms.get(i).getPlatformSpeed();
+      float fltPlatX2 = fltPlatX1 + intBlockSize * fltPlatL + 30;
+      float fltPlatY2 = fltPlatY1 + intBlockSize;
 
+      // Checks if the character is on top of a moving platform
+      if (fltYPos2 > fltPlatY1 && fltYPos < fltPlatY1 && fltXPos2 - 10 > fltPlatX1 && fltXPos < fltPlatX2) {
         // Reset y speed only when the character is landing on the platform
         if (fltYSpeed > 0) {
           fltYSpeed = 0;
         }
 
         // Sets position to the top of the platform
-        fltYPos = platforms.get(i).getPlatformPositionY() - intHeightMC;
-        fltPreJumpPos = platforms.get(i).getPlatformPositionY() - intHeightMC;
-        fltXPos -= platforms.get(i).getPlatformSpeed();
-      }
+        fltYPos = fltPlatY1 - intHeightMC;
+        fltPreJumpPos = fltPlatY1 - intHeightMC;
+        fltXPos -= fltPlatS;
 
-      // Stops character from phasing though platforms
-      if (fltYPos > platforms.get(i).getPlatformPositionY()
-          && fltYPos < platforms.get(i).getPlatformPositionY() + intBlockSize
-          && fltXPos + intWidthMC > platforms.get(i).getPlatformPositionX()
-          && fltXPos < platforms.get(i).getPlatformPositionX() + intBlockSize * platforms.get(i).getPlatformLength()
-              + 30 && fltYSpeed < 0) {
-        // Places character below the platform
-        fltYPos = platforms.get(i).getPlatformPositionY() + intBlockSize + 1;
+        // Allows character to phase though platforms
+      } else if (fltYPos > fltPlatY1 && fltYPos < fltPlatY2 && fltXPos2 > fltPlatX1 && fltXPos < fltPlatX2
+          && fltYSpeed < 0) {
+        // Places character above the platform and sets its speed to zero
         fltYSpeed = 0;
-      }
+        fltYPos = fltPlatY1 - intHeightMC + 1;
 
-      // Checks if character can be hit by a platform
-      if (fltYPos + intHeightMC > platforms.get(i).getPlatformPositionY()
-          && fltYPos < platforms.get(i).getPlatformPositionY() + intBlockSize 
-          && fltXPos + intWidthMC > platforms.get(i).getPlatformPositionX()
-          && fltXPos < platforms.get(i).getPlatformPositionX() + intBlockSize * platforms.get(i).getPlatformLength()
-              + 30) {
+        // Checks if character can be hit by a platform
+      } else if (fltYPos2 > fltPlatY1 && fltYPos < fltPlatY2 && fltXPos2 > fltPlatX1 && fltXPos < fltPlatX2) {
         // Character gets pushed by the platform
-        fltXPos -= platforms.get(i).getPlatformSpeed();
+        fltXPos -= fltPlatS;
+        fltXSpeed = 0;
+        blnRight = false;
       }
     }
 
@@ -283,18 +285,20 @@ public class Sketch extends PApplet {
       // Draws dash timer
       textSize(20);
       textAlign(CENTER, CENTER);
-      text(strDashDisplay, fltXPos + intWidthMC / 2, fltYPos + 10);
+      text(strDashDisplay, fltXPos + intWidthMC / 2, fltYPos + 20);
 
       // Draws character
       image(imgCrouch, fltXPos, fltYPos + (intHeightMC - intCrouchHeightMC));
 
       // Dash to the right
     } else if (blnDash && fltXPos < fltDashDist && imgDash == imgDashR) {
+      fltYSpeed = 0;
       fltXPos += 10;
       image(imgDash, fltXPos, fltYPos);
 
       // Dash to the left
     } else if (blnDash && imgMC == imgLeft && fltXPos > fltDashDist) {
+      fltYSpeed = 0;
       fltXPos -= 10;
       image(imgDash, fltXPos, fltYPos);
 
@@ -303,7 +307,7 @@ public class Sketch extends PApplet {
       blnDash = false;
       fltDashDist = 0;
       fltPreDashPos = 0;
-      fltJumpHeight = -8;
+      fltJumpHeight = -10;
       fltMaxSpeed = 5;
 
       // Draws dash timer
@@ -341,7 +345,7 @@ public class Sketch extends PApplet {
 
       // When facing right
       if (imgDash == imgDashR) {
-        // Stops character from dashing past the middle of the screen
+        // Stops character from dashing past the scrolling point
         if (fltXPos >= width - 200 - intWidthMC - fltDashLength) {
           fltDashDist = fltXPos + (width - 210 - fltXPos - intWidthMC); // Adds the distance from the scrolling point
         } else {

@@ -22,17 +22,17 @@ public class Platform {
     /**
      * Constructor: Initializes the platform's position, size, length, and image.
      * 
-     * @param papplet reference to the PApplet instance
-     * @param size    width and height of the platform blocks
-     * @param other   array of other platforms to avoid overlapping
+     * @param papplet   reference to the PApplet instance
+     * @param size      width and height of the platform blocks
+     * @param platforms array of other platforms to avoid overlapping
      */
     public Platform(PApplet papplet, int size, ArrayList<Platform> platforms) {
         p = papplet; // Assign the PApplet reference
         intSize = size;
-        intGap = 10;
-        fltSpeed = p.random(1, 3);
-        intLength = (int) p.random(2, 6);
-        fltXPos = p.width + 100;
+        intGap = 36; // 36 allows the character to crouch and fit in the gap with a little extra space (1 pixel)
+        fltSpeed = p.random(1.75f, 3);
+        intLength = (int) p.random(3, 7);
+        fltXPos = p.width; 
         fltYPos = CreateValidYPosition(platforms); // Sets the y position to a valid position
         imgBlock = p.loadImage("platformBlock.png");
         imgBlock.resize(intSize, intSize);
@@ -70,6 +70,15 @@ public class Platform {
     }
 
     /**
+     * Setter method for fltXPos
+     * 
+     * @param x the x position
+     */
+    public void setPlatformPositionX(float x) {
+        fltXPos = x;
+    }
+
+    /**
      * Updates the x-position of the platform based on the inputted speed and
      * resets it if it goes off the side of the screen.
      */
@@ -77,11 +86,11 @@ public class Platform {
         fltXPos -= fltSpeed;
 
         // Resets position, speed and length if it goes off screen
-        if (fltXPos < 0 - intLength * intSize * 2) { // x2 adds a delay before a new platform comes
-            fltXPos = p.width + 100;
+        if (fltXPos < 0 - intLength * intSize - 30) {
+            fltXPos = p.width;
             fltYPos = CreateValidYPosition(platforms);
-            fltSpeed = p.random(1, 3);
-            intLength = (int) p.random(2, 6);
+            fltSpeed = p.random(1.75f, 3);
+            intLength = (int) p.random(3, 7);
         }
     }
 
@@ -93,13 +102,13 @@ public class Platform {
      */
     private float CreateValidYPosition(ArrayList<Platform> platforms) {
         float fltNewYPos = 0;
-        int intBottomGap = intSize + intGap;
+        int intBelowGap = intSize + intGap;
         boolean blnValidY = false;
 
         // Finds a valid platform y position
         while (blnValidY == false) {
             // Sets the y position to a random y position
-            fltNewYPos = p.random(100, p.height - 100);
+            fltNewYPos = p.random(70, p.height - 100);
 
             // Initailizes the y position to true
             blnValidY = true;
@@ -110,7 +119,7 @@ public class Platform {
                 float fltY1 = platform.fltYPos;
 
                 // Checks if the y position is valid
-                if (fltNewYPos + intBottomGap < fltY1 || fltNewYPos > fltY1 + intBottomGap) {
+                if (fltNewYPos + intBelowGap < fltY1 || fltNewYPos > fltY1 + intBelowGap) {
                     blnValidY = true;
                 } else {
                     blnValidY = false;
