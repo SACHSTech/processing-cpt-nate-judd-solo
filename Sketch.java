@@ -158,13 +158,6 @@ public class Sketch extends PApplet {
       fltXPosBG = 0;
     }
 
-    // Clamp character position to stay on screen
-    if (fltXPos >= width - 200 - intWidthMC) {
-      fltXPos = width - 200 - intWidthMC;
-    } else if (fltXPos < 0) {
-      fltXPos = 0;
-    }
-
     // Apply gravity
     fltYSpeed += fltGravity;
 
@@ -185,17 +178,74 @@ public class Sketch extends PApplet {
       image(imgBlock, fltStartPlatX + i * intBlockSize, height - intBlockSize - 10);
     }
 
-    // Allows character to interact with the top of initial platform
-    if (fltYPos + intHeightMC >= height - intBlockSize - 10 && fltXPos + intWidthMC / 2 > fltStartPlatX
-        && fltXPos + intWidthMC / 2 < intBlockSize * intStartPlatLength + fltStartPlatX) {
+    // Checks if character is standing on the initial platform
+    boolean blnOnStartPlatform = fltYPos + intHeightMC > height - intBlockSize - 10
+        && fltXPos + intWidthMC > fltStartPlatX
+        && fltXPos < intBlockSize * intStartPlatLength + fltStartPlatX;
+
+    if (blnOnStartPlatform) {
+      // Reset y speed only when the character is landing on the platform
+      if (fltYSpeed > 0) {
+        fltYSpeed = 0;
+      }
+      // Sets y position to the top of the start platform
       fltYPos = height - intBlockSize - 10 - intHeightMC;
       fltPreJumpPos = height - intBlockSize - 10 - intHeightMC;
     }
 
     // Stops character from going inside the initial platform
-    if (fltYPos + intHeightMC > height - intBlockSize - 10
+    if (fltYPos > height - intBlockSize - 10 && fltXPos > fltStartPlatX
         && fltXPos < intBlockSize * intStartPlatLength + fltStartPlatX) {
       fltXPos = intBlockSize * intStartPlatLength + fltStartPlatX;
+    }
+
+    // Prints moving platforms
+    for (int i = 0; i < platforms.size(); i++) {
+      // Prints platforms
+      platforms.get(i).platformShift(platforms);
+      platforms.get(i).draw();
+    }
+
+    // Iterates through each moving platform
+    for (int i = 0; i < intPlatformCount; i++) {
+      // Checks if the character is on top of a moving platform
+      if (fltYPos + intHeightMC > platforms.get(i).getPlatformPositionY()
+          && fltYPos < platforms.get(i).getPlatformPositionY()
+          && fltXPos + intWidthMC / 2 > platforms.get(i).getPlatformPositionX()
+          && fltXPos < platforms.get(i).getPlatformPositionX() + intBlockSize * platforms.get(i).getPlatformLength()
+              + 30) {
+
+        // Reset y speed only when the character is landing on the platform
+        if (fltYSpeed > 0) {
+          fltYSpeed = 0;
+        }
+
+        // Sets position to the top of the platform
+        fltYPos = platforms.get(i).getPlatformPositionY() - intHeightMC;
+        fltPreJumpPos = platforms.get(i).getPlatformPositionY() - intHeightMC;
+        fltXPos -= platforms.get(i).getPlatformSpeed();
+      }
+
+      // Stops character from phasing though platforms
+      if (fltYPos > platforms.get(i).getPlatformPositionY()
+          && fltYPos < platforms.get(i).getPlatformPositionY() + intBlockSize
+          && fltXPos + intWidthMC > platforms.get(i).getPlatformPositionX()
+          && fltXPos < platforms.get(i).getPlatformPositionX() + intBlockSize * platforms.get(i).getPlatformLength()
+              + 30 && fltYSpeed < 0) {
+        // Places character below the platform
+        fltYPos = platforms.get(i).getPlatformPositionY() + intBlockSize + 1;
+        fltYSpeed = 0;
+      }
+
+      // Checks if character can be hit by a platform
+      if (fltYPos + intHeightMC > platforms.get(i).getPlatformPositionY()
+          && fltYPos < platforms.get(i).getPlatformPositionY() + intBlockSize 
+          && fltXPos + intWidthMC > platforms.get(i).getPlatformPositionX()
+          && fltXPos < platforms.get(i).getPlatformPositionX() + intBlockSize * platforms.get(i).getPlatformLength()
+              + 30) {
+        // Character gets pushed by the platform
+        fltXPos -= platforms.get(i).getPlatformSpeed();
+      }
     }
 
     // Checks if character can dash
@@ -263,13 +313,6 @@ public class Sketch extends PApplet {
 
       // Draws character
       image(imgMC, fltXPos, fltYPos);
-    }
-
-    // Prints moving platforms
-    for (int i = 0; i < platforms.size(); i++) {
-      // Prints platforms
-      platforms.get(i).platformShift(platforms);
-      platforms.get(i).draw();
     }
   }
 

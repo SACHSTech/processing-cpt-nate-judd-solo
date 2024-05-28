@@ -31,7 +31,7 @@ public class Platform {
         intSize = size;
         intGap = 10;
         fltSpeed = p.random(1, 3);
-        intLength = (int) p.random(1, 5);
+        intLength = (int) p.random(2, 6);
         fltXPos = p.width + 100;
         fltYPos = CreateValidYPosition(platforms); // Sets the y position to a valid position
         imgBlock = p.loadImage("platformBlock.png");
@@ -56,6 +56,10 @@ public class Platform {
         return fltYPos;
     }
 
+    public float getPlatformSpeed() {
+        return fltSpeed;
+    }
+
     /**
      * Getter method for intLength
      * 
@@ -77,7 +81,7 @@ public class Platform {
             fltXPos = p.width + 100;
             fltYPos = CreateValidYPosition(platforms);
             fltSpeed = p.random(1, 3);
-            intLength = (int) p.random(1, 5);
+            intLength = (int) p.random(2, 6);
         }
     }
 
@@ -95,7 +99,7 @@ public class Platform {
         // Finds a valid platform y position
         while (blnValidY == false) {
             // Sets the y position to a random y position
-            fltNewYPos = p.random(100, p.height - 30 - intSize);
+            fltNewYPos = p.random(100, p.height - 100);
 
             // Initailizes the y position to true
             blnValidY = true;
