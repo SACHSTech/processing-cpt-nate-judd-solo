@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-
 import processing.core.PApplet;
 import processing.core.PImage;
 
@@ -9,35 +8,49 @@ import processing.core.PImage;
  * @author NJudd
  */
 public class Sketch extends PApplet {
-  // Character and background images
-  PImage imgMainBG, imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgDash, imgDashR, imgDashL, imgRight, imgLeft;
   // Background
+  PImage imgMainBG;
   int intScreenW = 1000, intScreenH = 800;
-  float fltXPosBG = 0;
+  float fltXPosBG = 0, fltScrollXPos = intScreenW - 260;
+
   // Character
+  PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgDash, imgDashR, imgDashL, imgRight, imgLeft;
+  // Sizes
   int intWidthMC = 60, intHeightMC = 70, intCrouchHeightMC = 35;
   // Positions
-  float fltXPos = 55, fltYPos = 600, fltPreJumpPos = 0, fltDashDist = 0, fltPreDashPos = 0;
+  float fltXPos = 55, fltYPos = 10, fltPreJumpPos = 0, fltDashDist = 0, fltPreDashPos = 0;
   // Speeds
   float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeed = 5, fltJumpHeight = -10, fltDashLength = 150, fltSprintSpeed = 0;
   float fltAccel = 0.3f, fltDecel = 0.2f, fltGravity = 0.3f;
   // Movement
   boolean blnJump = false, blnLeft = false, blnRight = false, blnSprint = false, blnCrouch = false, blnDash = false;
   // Dashing
-  int intDashCooldown = 5000, intLastDashTime = 0, intDashCount = 0;
   String strDashDisplay = "";
+  int intDashCooldown = 5000, intLastDashTime = 0, intDashCount = 0;
   boolean blnCanDash = true;
-  // Platform
+
+  // Moving platforms
   PImage imgBlock;
   ArrayList<Platform> platforms = new ArrayList<Platform>();
-  int intPlatformCount = 6;
-  int intBlockSize = 30;
-  // Starting platform
+  int intPlatformCount = 6, intBlockSize = 30;
+
+  // Non-moving platform 1
+  PImage imgBlock2;
   int intPlat1Length = 5;
-  float fltPlat1X = 10;
-  float fltPlat1Y = intScreenH - intBlockSize - 10;
-  float fltPlat1X2 = intBlockSize * intPlat1Length + fltPlat1X;
-  // Initializes variables for lives
+  float fltPlat1X1 = 10, fltPlat1X2 = intBlockSize * intPlat1Length + fltPlat1X1;
+  float fltPlat1Y1 = intScreenH - intBlockSize - 10, fltPlat1Y2 = fltPlat1Y1 + intBlockSize;
+
+  // Non-moving platform 2
+  int intPlat2Length = 4;
+  float fltPlat2X1 = intScreenW / 2 - 2 * intBlockSize, fltPlat2X2 = intBlockSize * intPlat2Length + fltPlat2X1;
+  float fltPlat2Y1 = intScreenH / 2 - intBlockSize + 20, fltPlat2Y2 = fltPlat2Y1 + intBlockSize;
+
+  // Non-moving platform 3
+  int intPlat3Length = 4;
+  float fltPlat3X2 = fltScrollXPos + intWidthMC, fltPlat3X1 = fltPlat3X2 - intBlockSize * intPlat3Length;
+  float fltPlat3Y1 = 200, fltPlat3Y2 = fltPlat3Y1 + intBlockSize;
+
+  // Lives
   PImage imgLives;
   int intLifeSize = 30;
   int intLifeCount = 5;
@@ -57,7 +70,7 @@ public class Sketch extends PApplet {
     imgMainBG = loadImage("MainBG.jpeg");
     imgMainBG.resize(intScreenW, intScreenH);
 
-    // Character
+    // Character states
     imgRight = loadImage("MainCharacter.png");
     imgRight.resize(intWidthMC, intHeightMC);
     imgLeft = loadImage("LeftMC.png");
@@ -74,7 +87,11 @@ public class Sketch extends PApplet {
     imgDash = imgDashR;
     imgMC = imgRight;
 
-    // Platform
+    // Stationary platforms
+    imgBlock2 = loadImage("platformBlock2.png");
+    imgBlock2.resize(intBlockSize, intBlockSize);
+
+    // Moving platforms
     imgBlock = loadImage("platformBlock.png");
     imgBlock.resize(intBlockSize, intBlockSize);
 
@@ -101,7 +118,6 @@ public class Sketch extends PApplet {
     image(imgMainBG, fltXPosBG + intScreenW, 0);
 
     // Draws lives of the screen
-
     for (int i = intLifeCount; i >= 0; i--) {
       image(imgLives, 965 - i * 5 - i * intLifeSize, 5);
     }
@@ -182,27 +198,127 @@ public class Sketch extends PApplet {
     float fltXPos2 = fltXPos + intWidthMC;
     float fltYPos2 = fltYPos + intHeightMC;
 
-    // Draws initial platform
+    // Stops character from falling after a certian point
+    // if (fltYPos > fltPlat3Y2 + 50) {
+    // fltYPos = fltPlat3Y2 + 50;
+    // fltPreJumpPos = fltYPos;
+    // }
+
+    // Draws platform 1
     for (int i = 0; i < intPlat1Length; i++) {
-      image(imgBlock, fltPlat1X + i * intBlockSize, fltPlat1Y);
+      image(imgBlock2, fltPlat1X1 + i * intBlockSize, fltPlat1Y1);
     }
 
-    // Checks if character is standing on the initial platform
-    boolean blnOnPlat1 = fltYPos2 > fltPlat1Y && fltXPos2 > fltPlat1X && fltXPos < fltPlat1X2;
+    // Checks if character is on the right of platform 1
+    boolean blnRightOfPlat1 = fltXPos + intWidthMC / 2 > fltPlat1X1 + ((intBlockSize * intPlat1Length) / 2);
 
-    if (blnOnPlat1) {
-      // Reset y speed only when the character is landing on the platform
+    // Checks if character is standing on platform 1
+    if (fltYPos2 > fltPlat1Y1 && fltYPos < fltPlat1Y1 && fltXPos2 - 10 > fltPlat1X1 && fltXPos + 10 < fltPlat1X2) {
+      // Reset y speed only when the character is landing on platform 1
       if (fltYSpeed > 0) {
         fltYSpeed = 0;
       }
-      // Sets y position to the top of the start platform
-      fltYPos = fltPlat1Y - intHeightMC;
-      fltPreJumpPos = fltPlat1Y - intHeightMC;
+
+      // Sets position to the top of the platform 1
+      fltYPos = fltPlat1Y1 - intHeightMC;
+      fltPreJumpPos = fltPlat1Y1 - intHeightMC;
+
+      // Allows character to phase though platform 1
+    } else if (fltYPos > fltPlat1Y1 && fltYPos < fltPlat1Y2 && fltXPos2 > fltPlat1X1 && fltXPos < fltPlat1X2
+        && fltYSpeed < 0) {
+      // Places character above the platform and sets its speed to zero
+      fltYSpeed = 0;
+      fltYPos = fltPlat1Y1 - intHeightMC + 1;
+
+      // Stops character from going through platform 1 from the right
+    } else if (blnRightOfPlat1 && fltYPos2 > fltPlat1Y1 && fltYPos < fltPlat1Y2 && fltXPos2 > fltPlat1X1
+        && fltXPos < fltPlat1X2) {
+      blnLeft = false;
+      fltXPos = fltPlat1X2;
+
+      // Stops character from going through platform 1 from the left
+    } else if (!blnRightOfPlat1 && fltYPos2 > fltPlat1Y1 && fltYPos < fltPlat1Y2 && fltXPos2 > fltPlat1X1
+        && fltXPos < fltPlat1X2) {
+      blnRight = false;
+      fltXPos = fltPlat1X1 - intWidthMC;
     }
 
-    // Stops character from going inside the initial platform
-    if (fltYPos > fltPlat1Y && fltXPos > fltPlat1X && fltXPos < fltPlat1X2) {
-      fltXPos = fltPlat1X2;
+    // Draws platform 2
+    for (int i = 0; i < intPlat2Length; i++) {
+      image(imgBlock2, fltPlat2X1 + i * intBlockSize, fltPlat2Y1);
+    }
+
+    // Checks if character is on the right of platform 2
+    boolean blnRightOfPlat2 = fltXPos + intWidthMC / 2 > fltPlat2X1 + ((intBlockSize * intPlat2Length) / 2);
+
+    // Checks if character is standing on platform 2
+    if (fltYPos2 > fltPlat2Y1 && fltYPos < fltPlat2Y1 && fltXPos2 - 10 > fltPlat2X1 && fltXPos + 10 < fltPlat2X2) {
+      // Reset y speed only when the character is landing on platform 2
+      if (fltYSpeed > 0) {
+        fltYSpeed = 0;
+      }
+
+      // Sets position to the top of the platform 2
+      fltYPos = fltPlat2Y1 - intHeightMC;
+      fltPreJumpPos = fltPlat2Y1 - intHeightMC;
+
+      // Allows character to phase though platform 2
+    } else if (fltYPos > fltPlat2Y1 && fltYPos < fltPlat2Y2 && fltXPos2 > fltPlat2X1 && fltXPos < fltPlat2X2
+        && fltYSpeed < 0) {
+      // Places character above the platform and sets its speed to zero
+      fltYSpeed = 0;
+      fltYPos = fltPlat2Y1 - intHeightMC + 1;
+
+      // Stops character from going through platform 2 from the right
+    } else if (blnRightOfPlat2 && fltYPos2 > fltPlat2Y1 && fltYPos < fltPlat2Y2 && fltXPos2 > fltPlat2X1
+        && fltXPos < fltPlat2X2) {
+      blnLeft = false;
+      fltXPos = fltPlat2X2;
+
+      // Stops character from going through platform 2 from the left
+    } else if (!blnRightOfPlat2 && fltYPos2 > fltPlat2Y1 && fltYPos < fltPlat2Y2 && fltXPos2 > fltPlat2X1
+        && fltXPos < fltPlat2X2) {
+      blnRight = false;
+      fltXPos = fltPlat2X1 - intWidthMC;
+    }
+
+    // Draws platform 3
+    for (int i = 0; i < intPlat3Length; i++) {
+      image(imgBlock2, fltPlat3X1 + i * intBlockSize, fltPlat3Y1);
+    }
+
+    // Checks if character is on the right of platform 3
+    boolean blnRightOfPlat3 = fltXPos + intWidthMC / 2 > fltPlat3X1 + ((intBlockSize * intPlat3Length) / 2);
+
+    // Checks if character is standing on platform 3
+    if (fltYPos2 > fltPlat3Y1 && fltYPos < fltPlat3Y1 && fltXPos2 - 10 > fltPlat3X1 && fltXPos + 10 < fltPlat3X2) {
+      // Reset y speed only when the character is landing on platform 3
+      if (fltYSpeed > 0) {
+        fltYSpeed = 0;
+      }
+
+      // Sets position to the top of the platform 3
+      fltYPos = fltPlat3Y1 - intHeightMC;
+      fltPreJumpPos = fltPlat3Y1 - intHeightMC;
+
+      // Allows character to phase though platform 3
+    } else if (fltYPos > fltPlat3Y1 && fltYPos < fltPlat3Y2 && fltXPos2 > fltPlat3X1 && fltXPos < fltPlat3X2
+        && fltYSpeed < 0) {
+      // Places character above the platform and sets its speed to zero
+      fltYSpeed = 0;
+      fltYPos = fltPlat3Y1 - intHeightMC + 1;
+
+      // Stops character from going through platform 3 from the right
+    } else if (blnRightOfPlat3 && fltYPos2 > fltPlat3Y1 && fltYPos < fltPlat3Y2 && fltXPos2 > fltPlat3X1
+        && fltXPos < fltPlat3X2) {
+      blnLeft = false;
+      fltXPos = fltPlat3X2;
+
+      // Stops character from going through platform 3 from the left
+    } else if (!blnRightOfPlat3 && fltYPos2 > fltPlat3Y1 && fltYPos < fltPlat3Y2 && fltXPos2 > fltPlat3X1
+        && fltXPos < fltPlat3X2) {
+      blnRight = false;
+      fltXPos = fltPlat3X1 - intWidthMC;
     }
 
     // Prints moving platforms
