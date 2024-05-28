@@ -197,48 +197,34 @@ public class Sketch extends PApplet {
     // Initializes character positions
     float fltXPos2 = fltXPos + intWidthMC;
     float fltYPos2 = fltYPos + intHeightMC;
-
-    // Stops character from falling after a certian point
-    // if (fltYPos > fltPlat3Y2 + 50) {
-    // fltYPos = fltPlat3Y2 + 50;
-    // fltPreJumpPos = fltYPos;
-    // }
+    float fltXMiddle = fltXPos + intWidthMC / 2;
+    float fltYMiddle = fltYPos + intHeightMC / 2;
 
     // Draws platform 1
     for (int i = 0; i < intPlat1Length; i++) {
       image(imgBlock2, fltPlat1X1 + i * intBlockSize, fltPlat1Y1);
     }
 
-    // Checks if character is on the right of platform 1
-    boolean blnRightOfPlat1 = fltXPos + intWidthMC / 2 > fltPlat1X1 + ((intBlockSize * intPlat1Length) / 2);
+    // Collision for platform 1
+    boolean blnRightOfPlat1 = isRightofPlatform(intPlat1Length, fltXMiddle, fltPlat1X1);
 
-    // Checks if character is standing on platform 1
-    if (fltYPos2 > fltPlat1Y1 && fltYPos < fltPlat1Y1 && fltXPos2 - 10 > fltPlat1X1 && fltXPos + 10 < fltPlat1X2) {
-      // Reset y speed only when the character is landing on platform 1
-      if (fltYSpeed > 0) {
-        fltYSpeed = 0;
-      }
-
-      // Sets position to the top of the platform 1
-      fltYPos = fltPlat1Y1 - intHeightMC;
-      fltPreJumpPos = fltPlat1Y1 - intHeightMC;
-
-      // Allows character to phase though platform 1
-    } else if (fltYPos > fltPlat1Y1 && fltYPos < fltPlat1Y2 && fltXPos2 > fltPlat1X1 && fltXPos < fltPlat1X2
-        && fltYSpeed < 0) {
-      // Places character above the platform and sets its speed to zero
+    if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat1X1, fltPlat1X2, fltPlat1Y1)) {
+      fltYSpeed = resetVerticalSpeed(fltYSpeed);
+      fltYPos = setPosition(fltYPos, fltPlat1Y1);
+      fltPreJumpPos = fltYPos;
+    } else if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2)) {
       fltYSpeed = 0;
-      fltYPos = fltPlat1Y1 - intHeightMC + 1;
-
-      // Stops character from going through platform 1 from the right
-    } else if (blnRightOfPlat1 && fltYPos2 > fltPlat1Y1 && fltYPos < fltPlat1Y2 && fltXPos2 > fltPlat1X1
-        && fltXPos < fltPlat1X2) {
+      fltYPos = setPosition(fltYPos, fltPlat1Y1);
+    } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2,
+        fltYSpeed)) {
+      fltYSpeed = 0;
+      fltYPos = setPosition(fltYPos, fltPlat1Y1);
+    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2)
+        && blnRightOfPlat1) {
       blnLeft = false;
       fltXPos = fltPlat1X2;
-
-      // Stops character from going through platform 1 from the left
-    } else if (!blnRightOfPlat1 && fltYPos2 > fltPlat1Y1 && fltYPos < fltPlat1Y2 && fltXPos2 > fltPlat1X1
-        && fltXPos < fltPlat1X2) {
+    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2)
+        && !blnRightOfPlat1) {
       blnRight = false;
       fltXPos = fltPlat1X1 - intWidthMC;
     }
@@ -248,36 +234,26 @@ public class Sketch extends PApplet {
       image(imgBlock2, fltPlat2X1 + i * intBlockSize, fltPlat2Y1);
     }
 
-    // Checks if character is on the right of platform 2
-    boolean blnRightOfPlat2 = fltXPos + intWidthMC / 2 > fltPlat2X1 + ((intBlockSize * intPlat2Length) / 2);
+    // Collision for platform 2
+    boolean blnRightOfPlat2 = isRightofPlatform(intPlat2Length, fltXMiddle, fltPlat2X1);
 
-    // Checks if character is standing on platform 2
-    if (fltYPos2 > fltPlat2Y1 && fltYPos < fltPlat2Y1 && fltXPos2 - 10 > fltPlat2X1 && fltXPos + 10 < fltPlat2X2) {
-      // Reset y speed only when the character is landing on platform 2
-      if (fltYSpeed > 0) {
-        fltYSpeed = 0;
-      }
-
-      // Sets position to the top of the platform 2
-      fltYPos = fltPlat2Y1 - intHeightMC;
-      fltPreJumpPos = fltPlat2Y1 - intHeightMC;
-
-      // Allows character to phase though platform 2
-    } else if (fltYPos > fltPlat2Y1 && fltYPos < fltPlat2Y2 && fltXPos2 > fltPlat2X1 && fltXPos < fltPlat2X2
-        && fltYSpeed < 0) {
-      // Places character above the platform and sets its speed to zero
+    if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat2X1, fltPlat2X2, fltPlat2Y1)) {
+      fltYSpeed = resetVerticalSpeed(fltYSpeed);
+      fltYPos = setPosition(fltYPos, fltPlat2Y1);
+      fltPreJumpPos = fltYPos;
+    } else if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2)) {
       fltYSpeed = 0;
-      fltYPos = fltPlat2Y1 - intHeightMC + 1;
-
-      // Stops character from going through platform 2 from the right
-    } else if (blnRightOfPlat2 && fltYPos2 > fltPlat2Y1 && fltYPos < fltPlat2Y2 && fltXPos2 > fltPlat2X1
-        && fltXPos < fltPlat2X2) {
+      fltYPos = setPosition(fltYPos, fltPlat2Y1);
+    } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2,
+        fltYSpeed)) {
+      fltYSpeed = 0;
+      fltYPos = setPosition(fltYPos, fltPlat2Y1);
+    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2)
+        && blnRightOfPlat2) {
       blnLeft = false;
       fltXPos = fltPlat2X2;
-
-      // Stops character from going through platform 2 from the left
-    } else if (!blnRightOfPlat2 && fltYPos2 > fltPlat2Y1 && fltYPos < fltPlat2Y2 && fltXPos2 > fltPlat2X1
-        && fltXPos < fltPlat2X2) {
+    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2)
+        && !blnRightOfPlat2) {
       blnRight = false;
       fltXPos = fltPlat2X1 - intWidthMC;
     }
@@ -287,36 +263,26 @@ public class Sketch extends PApplet {
       image(imgBlock2, fltPlat3X1 + i * intBlockSize, fltPlat3Y1);
     }
 
-    // Checks if character is on the right of platform 3
-    boolean blnRightOfPlat3 = fltXPos + intWidthMC / 2 > fltPlat3X1 + ((intBlockSize * intPlat3Length) / 2);
+    // Collision for platform 3
+    boolean blnRightOfPlat3 = isRightofPlatform(intPlat3Length, fltXMiddle, fltPlat3X1);
 
-    // Checks if character is standing on platform 3
-    if (fltYPos2 > fltPlat3Y1 && fltYPos < fltPlat3Y1 && fltXPos2 - 10 > fltPlat3X1 && fltXPos + 10 < fltPlat3X2) {
-      // Reset y speed only when the character is landing on platform 3
-      if (fltYSpeed > 0) {
-        fltYSpeed = 0;
-      }
-
-      // Sets position to the top of the platform 3
-      fltYPos = fltPlat3Y1 - intHeightMC;
-      fltPreJumpPos = fltPlat3Y1 - intHeightMC;
-
-      // Allows character to phase though platform 3
-    } else if (fltYPos > fltPlat3Y1 && fltYPos < fltPlat3Y2 && fltXPos2 > fltPlat3X1 && fltXPos < fltPlat3X2
-        && fltYSpeed < 0) {
-      // Places character above the platform and sets its speed to zero
+    if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat3X1, fltPlat3X2, fltPlat3Y1)) {
+      fltYSpeed = resetVerticalSpeed(fltYSpeed);
+      fltYPos = setPosition(fltYPos, fltPlat3Y1);
+      fltPreJumpPos = fltYPos;
+    } else if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2)) {
       fltYSpeed = 0;
-      fltYPos = fltPlat3Y1 - intHeightMC + 1;
-
-      // Stops character from going through platform 3 from the right
-    } else if (blnRightOfPlat3 && fltYPos2 > fltPlat3Y1 && fltYPos < fltPlat3Y2 && fltXPos2 > fltPlat3X1
-        && fltXPos < fltPlat3X2) {
+      fltYPos = setPosition(fltYPos, fltPlat3Y1);
+    } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2,
+        fltYSpeed)) {
+      fltYSpeed = 0;
+      fltYPos = setPosition(fltYPos, fltPlat3Y1);
+    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2)
+        && blnRightOfPlat3) {
       blnLeft = false;
       fltXPos = fltPlat3X2;
-
-      // Stops character from going through platform 3 from the left
-    } else if (!blnRightOfPlat3 && fltYPos2 > fltPlat3Y1 && fltYPos < fltPlat3Y2 && fltXPos2 > fltPlat3X1
-        && fltXPos < fltPlat3X2) {
+    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2)
+        && !blnRightOfPlat3) {
       blnRight = false;
       fltXPos = fltPlat3X1 - intWidthMC;
     }
@@ -338,29 +304,23 @@ public class Sketch extends PApplet {
       float fltPlatX2 = fltPlatX1 + intBlockSize * fltPlatL + 30;
       float fltPlatY2 = fltPlatY1 + intBlockSize;
 
-      // Checks if the character is on top of a moving platform
-      if (fltYPos2 > fltPlatY1 && fltYPos < fltPlatY1 && fltXPos2 - 10 > fltPlatX1 && fltXPos < fltPlatX2) {
-        // Reset y speed only when the character is landing on the platform
-        if (fltYSpeed > 0) {
-          fltYSpeed = 0;
-        }
-
-        // Sets position to the top of the platform
-        fltYPos = fltPlatY1 - intHeightMC;
-        fltPreJumpPos = fltPlatY1 - intHeightMC;
-        fltXPos -= fltPlatS;
-
-        // Allows character to phase though platforms
-      } else if (fltYPos > fltPlatY1 && fltYPos < fltPlatY2 && fltXPos2 > fltPlatX1 && fltXPos < fltPlatX2
-          && fltYSpeed < 0) {
-        // Places character above the platform and sets its speed to zero
+      // Collision for the moving platforms
+      if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
         fltYSpeed = 0;
-        fltYPos = fltPlatY1 - intHeightMC + 1;
-
-        // Checks if character can be hit by a platform
-      } else if (fltYPos2 > fltPlatY1 && fltYPos < fltPlatY2 && fltXPos2 > fltPlatX1 && fltXPos < fltPlatX2) {
+        fltYPos = setPosition(fltYPos, fltPlatY1);
+      } else if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
+        fltYSpeed = resetVerticalSpeed(fltYSpeed);
+        fltYPos = setPosition(fltYPos, fltPlatY1);
+        fltPreJumpPos = fltYPos;
+        fltXPos -= fltPlatS;
+      } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2,
+          fltYSpeed)) {
+        fltYSpeed = 0;
+        fltYPos = setPosition(fltYPos, fltPlatY1);
+      } else if (isHitByPlatform(fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
         // Character gets pushed by the platform
         fltXPos -= fltPlatS;
+        // Character cannot run through the platform
         fltXSpeed = 0;
         blnRight = false;
       }
@@ -401,7 +361,7 @@ public class Sketch extends PApplet {
       // Draws dash timer
       textSize(20);
       textAlign(CENTER, CENTER);
-      text(strDashDisplay, fltXPos + intWidthMC / 2, fltYPos + 20);
+      text(strDashDisplay, fltXMiddle, fltYPos + 20);
 
       // Draws character
       image(imgCrouch, fltXPos, fltYPos + (intHeightMC - intCrouchHeightMC));
@@ -429,7 +389,7 @@ public class Sketch extends PApplet {
       // Draws dash timer
       textSize(20);
       textAlign(CENTER, CENTER);
-      text(strDashDisplay, fltXPos + intWidthMC / 2, fltYPos - 15);
+      text(strDashDisplay, fltXMiddle, fltYPos - 15);
 
       // Draws character
       image(imgMC, fltXPos, fltYPos);
@@ -499,5 +459,129 @@ public class Sketch extends PApplet {
     if (key == 'x') {
       blnCrouch = false;
     }
+  }
+
+  /**
+   * Resets vertical speed when the character is landing on a platform
+   * 
+   * @param fltSpeed the vertical speed
+   * @return the speed
+   */
+  public float resetVerticalSpeed(float fltSpeed) {
+    if (fltSpeed > 0) {
+      fltSpeed = 0;
+    }
+    return fltSpeed;
+  }
+
+  /**
+   * Sets y position to the top of a platform
+   * 
+   * @param fltY     y position of the character
+   * @param fltPlatY y position of the platform
+   * @return the y character's y position
+   */
+  public float setPosition(float fltY, float fltPlatY) {
+    fltY = fltPlatY - intHeightMC;
+    return fltY;
+  }
+
+  /**
+   * Checks if the character is on the right side of a stationary platform
+   * 
+   * @param intLength amount of platform blocks
+   * @param fltMiddle middle of character horizontally
+   * @param fltX      left side of platform
+   * @return if the character is on the right side of the platform or not
+   */
+  public boolean isRightofPlatform(int intLength, float fltMiddle, float fltX) {
+    return fltMiddle > fltX + ((intBlockSize * intLength) / 2);
+  }
+
+  /**
+   * Checks if the character is on top of a platform
+   * 
+   * @param fltX1     left side of the character
+   * @param fltX2     right side of the character
+   * @param fltY1     top of the character
+   * @param fltY2     bottom of the character
+   * @param fltPlatX1 left side of the platform
+   * @param fltPlatX2 right side of the platform
+   * @param fltPlatY  top of the platform
+   * @return if the character is top of the platform or not
+   */
+  public boolean isOnPlatform(float fltX1, float fltX2, float fltY1, float fltY2, float fltPlatX1, float fltPlatX2,
+      float fltPlatY) {
+    return fltY2 > fltPlatY && fltY1 < fltPlatY - intHeightMC + 10 && fltX2 > fltPlatX1 && fltX1 < fltPlatX2;
+  }
+
+  /**
+   * Checks if the character is inside a platform
+   * 
+   * @param fltX1     left side of the character
+   * @param fltX2     right side of the character
+   * @param fltMiddle y middle of the character
+   * @param fltPlatX1 left side of the platform
+   * @param fltPlatX2 right side of the platform
+   * @param fltPlatY1 top of the platform
+   * @param fltPlatY2 bottom of the platform
+   * @return if the character is in the platform or not
+   */
+  public boolean isInPlatform(float fltX1, float fltX2, float fltMiddle, float fltPlatX1, float fltPlatX2,
+      float fltPlatY1, float fltPlatY2) {
+    return fltMiddle > fltPlatY1 && fltMiddle < fltPlatY2 && fltX2 > fltPlatX1 && fltX1 < fltPlatX2;
+  }
+
+  /**
+   * Checks if the character can phase through a platform
+   * 
+   * @param fltX1     left side of the character
+   * @param fltX2     right side of the character
+   * @param fltY      top of the character
+   * @param fltPlatX1 left side of the platform
+   * @param fltPlatX2 right side of the platform
+   * @param fltPlatY1 top of the platform
+   * @param fltPlatY2 bottom of the platform
+   * @param fltSpeed  y speed of the character
+   * @return if the character can phase through the platform or not
+   */
+  public boolean canPhaseThroughPlatform(float fltX1, float fltX2, float fltY, float fltPlatX1, float fltPlatX2,
+      float fltPlatY1, float fltPlatY2, float fltSpeed) {
+    return fltY > fltPlatY1 && fltY < fltPlatY2 && fltX2 > fltPlatX1 && fltX1 < fltPlatX2 && fltSpeed < 0;
+  }
+
+  /**
+   * Checks if the character is in the right side of a stationary platform
+   * 
+   * @param fltX1     left side of the character
+   * @param fltX2     right side of the character
+   * @param fltY1     top of the character
+   * @param fltY2     bottom of the character
+   * @param fltPlatX1 left side of the platform
+   * @param fltPlatX2 right side of the platform
+   * @param fltPlatY1 top of the platform
+   * @param fltPlatY2 bottom of the platform
+   * @return if the character is in the right side of a stationary platform or not
+   */
+  public boolean isInPlatformOnRight(float fltX1, float fltX2, float fltY1, float fltY2, float fltPlatX1,
+      float fltPlatX2, float fltPlatY1, float fltPlatY2) {
+    return fltY2 > fltPlatY1 && fltY1 < fltPlatY2 && fltX2 > fltPlatX1 && fltX1 < fltPlatX2;
+  }
+
+  /**
+   * Checks if the character is hit by a moving platform
+   * 
+   * @param fltX      right side of the character
+   * @param fltY1     top of the character
+   * @param fltY2     bottom of the character
+   * @param fltPlatX1 left side of the platform
+   * @param fltPlatX2 right side of the platform
+   * @param fltPlatY1 top of the platform
+   * @param fltPlatY2 bottom of the platform
+   * @return if the character is hit by a moving platform or not
+   */
+  public boolean isHitByPlatform(float fltX, float fltY1, float fltY2, float fltPlatX1, float fltPlatX2,
+      float fltPlatY1, float fltPlatY2) {
+    return fltY2 > fltPlatY1 && fltY1 < fltPlatY2 && fltX > fltPlatX1 && fltX < fltPlatX2;
   }
 }
