@@ -3,7 +3,7 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 /**
- * The main code of the Rooftop Runner game.
+ * The main code of Skyline Speedster.
  * 
  * @author NJudd
  */
@@ -109,10 +109,53 @@ public class Sketch extends PApplet {
    * character.
    */
   public void draw() {
+    drawBackground();
+    drawLives();
+
+    fltSprintSpeed = setSprintSpeed();
+    blnCanDash = canDash();
+    addPlatforms();
+    dashTimer();
+    applyGravity();
+
+    horizontalMovement();
+    verticalMovement();
+
+    drawCharacter();
+    drawPlatforms();
+
+    stationaryPlatformCollision(intPlat1Length, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2);
+    stationaryPlatformCollision(intPlat2Length, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2);
+    stationaryPlatformCollision(intPlat3Length, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2);
+    movingPlatformCollision(platforms);
+  }
+
+  /**
+   * Background logic and draws the background
+   */
+  public void drawBackground() {
     background(255);
     image(imgMainBG, fltXPosBG, 0);
     image(imgMainBG, fltXPosBG + intScreenW, 0);
 
+    if (fltXPosBG <= -width) {
+      fltXPosBG = 0;
+    }
+  }
+
+  /**
+   * Draws character's lives
+   */
+  public void drawLives() {
+    for (int i = intLifeCount; i >= 0; i--) {
+      image(imgLives, 965 - i * 5 - i * intLifeSize, 5);
+    }
+  }
+
+  /**
+   * Checks if more platforms can be added and adds them to the arraylist
+   */
+  public void addPlatforms() {
     // Checks if more platforms can be added
     if (intPlatformCount == intStartingPlatformCount + intAddedPlatformCount) {
       blnCanAddPlatforms = false;
@@ -124,7 +167,7 @@ public class Sketch extends PApplet {
       }
     }
 
-    // Adds more platforms
+    // Adds them to the arraylist
     if (blnCanAddPlatforms) {
       for (int i = 0; i < intAddedPlatformCount; i++) {
         platforms.add(new Platform(this, intBlockSize, intHeightMC, platforms));
@@ -132,31 +175,44 @@ public class Sketch extends PApplet {
       intPlatformCount += intAddedPlatformCount;
       blnCanAddPlatforms = false;
     }
+  }
 
-    // Draws lives of the screen
-    for (int i = intLifeCount; i >= 0; i--) {
-      image(imgLives, 965 - i * 5 - i * intLifeSize, 5);
-    }
+  /**
+   * Applies gravity to the character
+   */
+  public void applyGravity() {
+    fltYSpeed += fltGravity;
+    fltYPos += fltYSpeed;
+  }
 
-    // Calculate maximum speed in the sprinting state
+  /**
+   * Calculates maximum speed in the sprinting state
+   */
+  public float setSprintSpeed() {
     if (blnSprint) {
       fltSprintSpeed = fltMaxSpeed;
     } else {
-      // Speed is reduced to 60% of the maximum sprint speed
       fltSprintSpeed = fltMaxSpeed * 0.6f;
     }
 
-    // Horizontal movement logic
+    return fltSprintSpeed;
+  }
+
+  /**
+   * Horizontal movement for the character
+   */
+  public void horizontalMovement() {
     if (blnRight) {
-      // Change the direction of the character
       imgMC = imgRight;
       imgDash = imgDashR;
       imgCrouch = imgCrouchR;
+
       // Accelerate right
       fltXSpeed += fltAccel;
       if (fltXSpeed > fltSprintSpeed) {
         fltXSpeed = fltSprintSpeed;
       }
+
       // Move character and background
       if (fltXPos >= width - 200 - intWidthMC) {
         fltXPosBG -= fltXSpeed;
@@ -164,157 +220,143 @@ public class Sketch extends PApplet {
         fltXPos += fltXSpeed;
       }
     } else if (blnLeft) {
-      // Change the direction of the character
       imgMC = imgLeft;
       imgDash = imgDashL;
       imgCrouch = imgCrouchL;
+
       // Accelerate left
       fltXSpeed -= fltAccel;
       if (fltXSpeed < -fltSprintSpeed) {
         fltXSpeed = -fltSprintSpeed;
       }
-      // Move character
+
       fltXPos += fltXSpeed;
     } else {
-      // Decelerate if no movement
+      // Deaccelerate
       if (fltXSpeed > 0) {
         fltXSpeed -= fltDecel;
-        if (fltXSpeed < 0)
+
+        if (fltXSpeed < 0) {
           fltXSpeed = 0;
-        fltXPos += fltXSpeed;
+          fltXPos += fltXSpeed;
+        }
       } else if (fltXSpeed < 0) {
         fltXSpeed += fltDecel;
-        if (fltXSpeed > 0)
+
+        if (fltXSpeed > 0) {
           fltXSpeed = 0;
-        fltXPos += fltXSpeed;
+          fltXPos += fltXSpeed;
+        }
       }
     }
+  }
 
-    // Reset background position if it goes off screen
-    if (fltXPosBG <= -width) {
-      fltXPosBG = 0;
-    }
-
-    // Apply gravity
-    fltYSpeed += fltGravity;
-
-    // Initializes the character's y position to a falling state
-    fltYPos += fltYSpeed;
-
-    // Vertical movement logic (jumping and gravity)
+  /**
+   * Vertical movement for the character
+   */
+  public void verticalMovement() {
     if (blnJump) {
       if (fltYPos >= fltPreJumpPos) {
-        // Start jump
         fltYSpeed = fltJumpHeight;
         blnJump = false;
       }
     }
+  }
 
-    // Initializes character positions
-    float fltXPos2 = fltXPos + intWidthMC;
-    float fltYPos2 = fltYPos + intHeightMC;
+  /**
+   * Calculates the character's state then draws the character then alters its
+   * movement based on its state
+   */
+  public void drawCharacter() {
+    if (blnCrouch) {
+      fltJumpHeight = -6;
+      fltMaxSpeed = 3;
+
+      drawDashTimer(20);
+
+      image(imgCrouch, fltXPos, fltYPos + (intHeightMC - intCrouchHeightMC));
+
+      // Dash to the right
+    } else if (blnDash && fltXPos < fltDashDist && imgDash == imgDashR) {
+      fltYSpeed = 0;
+      fltXPos += 10;
+
+      image(imgDash, fltXPos, fltYPos);
+
+      // Dash to the left
+    } else if (blnDash && imgMC == imgLeft && fltXPos > fltDashDist) {
+      fltYSpeed = 0;
+      fltXPos -= 10;
+
+      image(imgDash, fltXPos, fltYPos);
+
+      // Resets charcter to normal state
+    } else {
+      blnDash = false;
+      fltDashDist = 0;
+      fltPreDashPos = 0;
+      fltJumpHeight = -10;
+      fltMaxSpeed = 5;
+
+      drawDashTimer(-15);
+
+      image(imgMC, fltXPos, fltYPos);
+    }
+  }
+
+  /**
+   * Draws the dash timer
+   */
+  public void drawDashTimer(int intYAdded) {
+    // Initializes character centre position
     float fltXMiddle = fltXPos + intWidthMC / 2;
-    float fltYMiddle = fltYPos + intHeightMC / 2;
 
-    // Draws platform 1
-    for (int i = 0; i < intPlat1Length; i++) {
-      image(imgBlock2, fltPlat1X1 + i * intBlockSize, fltPlat1Y1);
-    }
+    textSize(20);
+    textAlign(CENTER, CENTER);
+    text(strDashDisplay, fltXMiddle, fltYPos + intYAdded);
+  }
 
-    // Collision for platform 1
-    boolean blnRightOfPlat1 = isRightofPlatform(intPlat1Length, fltXMiddle, fltPlat1X1);
+  /**
+   * Draws all the platforms
+   */
+  public void drawPlatforms() {
+    drawStationaryPlatform(intBlockSize, intPlat1Length, fltPlat1X1, fltPlat1Y1);
+    drawStationaryPlatform(intBlockSize, intPlat2Length, fltPlat2X1, fltPlat2Y1);
+    drawStationaryPlatform(intBlockSize, intPlat3Length, fltPlat3X1, fltPlat3Y1);
 
-    if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2)) {
-      fltYSpeed = 0;
-      fltYPos = setPosition(fltYPos, fltPlat1Y1);
-    } else if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat1X1, fltPlat1X2, fltPlat1Y1)) {
-      fltYSpeed = resetVerticalSpeed(fltYSpeed);
-      fltYPos = setPosition(fltYPos, fltPlat1Y1);
-      fltPreJumpPos = fltYPos;
-    } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2,
-        fltYSpeed)) {
-      fltYSpeed = 0;
-      fltYPos = setPosition(fltYPos, fltPlat1Y1);
-    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2)
-        && blnRightOfPlat1) {
-      blnSprint = false;
-      blnLeft = false;
-      fltXPos = fltPlat1X2;
-    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2)
-        && !blnRightOfPlat1) {
-      blnSprint = false;
-      blnRight = false;
-      fltXPos = fltPlat1X1 - intWidthMC;
-    }
+    drawMovingPlatform(platforms);
+  }
 
-    // Draws platform 2
-    for (int i = 0; i < intPlat2Length; i++) {
-      image(imgBlock2, fltPlat2X1 + i * intBlockSize, fltPlat2Y1);
-    }
-
-    // Collision for platform 2
-    boolean blnRightOfPlat2 = isRightofPlatform(intPlat2Length, fltXMiddle, fltPlat2X1);
-
-    if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2)) {
-      fltYSpeed = 0;
-      fltYPos = setPosition(fltYPos, fltPlat2Y1);
-    } else if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat2X1, fltPlat2X2, fltPlat2Y1)) {
-      fltYSpeed = resetVerticalSpeed(fltYSpeed);
-      fltYPos = setPosition(fltYPos, fltPlat2Y1);
-      fltPreJumpPos = fltYPos;
-    } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2,
-        fltYSpeed)) {
-      fltYSpeed = 0;
-      fltYPos = setPosition(fltYPos, fltPlat2Y1);
-    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2)
-        && blnRightOfPlat2) {
-      blnSprint = false;
-      blnLeft = false;
-      fltXPos = fltPlat2X2;
-    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2)
-        && !blnRightOfPlat2) {
-      blnSprint = false;
-      blnRight = false;
-      fltXPos = fltPlat2X1 - intWidthMC;
-    }
-
-    // Draws platform 3
-    for (int i = 0; i < intPlat3Length; i++) {
-      image(imgBlock2, fltPlat3X1 + i * intBlockSize, fltPlat3Y1);
-    }
-
-    // Collision for platform 3
-    boolean blnRightOfPlat3 = isRightofPlatform(intPlat3Length, fltXMiddle, fltPlat3X1);
-
-    if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2)) {
-      fltYSpeed = 0;
-      fltYPos = setPosition(fltYPos, fltPlat3Y1);
-    } else if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat3X1, fltPlat3X2, fltPlat3Y1)) {
-      fltYSpeed = resetVerticalSpeed(fltYSpeed);
-      fltYPos = setPosition(fltYPos, fltPlat3Y1);
-      fltPreJumpPos = fltYPos;
-    } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2,
-        fltYSpeed)) {
-      fltYSpeed = 0;
-      fltYPos = setPosition(fltYPos, fltPlat3Y1);
-    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2)
-        && blnRightOfPlat3) {
-          blnSprint = false;
-      blnLeft = false;
-      fltXPos = fltPlat3X2;
-    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2)
-        && !blnRightOfPlat3) {
-          blnSprint = false;
-      blnRight = false;
-      fltXPos = fltPlat3X1 - intWidthMC;
-    }
-
-    // Prints moving platforms
+  /**
+   * Draws moving platforms
+   * 
+   * @param platforms an array of platforms
+   */
+  public void drawMovingPlatform(ArrayList<Platform> platforms) {
     for (int i = 0; i < platforms.size(); i++) {
-      // Prints platforms
       platforms.get(i).platformShift(platforms);
       platforms.get(i).draw();
     }
+  }
+
+  /**
+   * Draws stationary platforms
+   * 
+   * @param intSize   size of each platform block
+   * @param intLength length of the platform in blocks
+   * @param fltPlatX  left side of the platform
+   * @param fltPlatY  top of the platform
+   */
+  public void drawStationaryPlatform(int intSize, int intLength, float fltPlatX, float fltPlatY) {
+    for (int i = 0; i < intLength; i++) {
+      image(imgBlock2, fltPlatX + i * intSize, fltPlatY);
+    }
+  }
+
+  public void movingPlatformCollision(ArrayList<Platform> platforms) {
+    // Initializes character positions
+    float fltXPos2 = fltXPos + intWidthMC;
+    float fltYPos2 = fltYPos + intHeightMC;
 
     // Iterates through each moving platform
     for (int i = 0; i < intPlatformCount; i++) {
@@ -326,11 +368,7 @@ public class Sketch extends PApplet {
       float fltPlatX2 = fltPlatX1 + intBlockSize * fltPlatL + 30;
       float fltPlatY2 = fltPlatY1 + intBlockSize;
 
-      // Collision for the moving platforms
-      if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
-        fltYSpeed = 0;
-        fltYPos = setPosition(fltYPos, fltPlatY1);
-      } else if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
+      if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
         fltYSpeed = resetVerticalSpeed(fltYSpeed);
         fltYPos = setPosition(fltYPos, fltPlatY1);
         fltPreJumpPos = fltYPos;
@@ -340,21 +378,62 @@ public class Sketch extends PApplet {
         fltYSpeed = 0;
         fltYPos = setPosition(fltYPos, fltPlatY1);
       } else if (isHitByPlatform(fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
-        // Character gets pushed by the platform
         fltXPos -= fltPlatS;
-        // Character cannot run through the platform
         fltXSpeed = 0;
         blnSprint = false;
         blnRight = false;
+        blnDash = false;
       }
     }
+  }
 
-    // Checks if character can dash
-    if (!blnCanDash && millis() - intLastDashTime >= intDashCooldown) {
-      blnCanDash = true;
+  /**
+   * Handles collision for stationary platforms
+   * 
+   * @param intPlatLength length of the platform in blocks
+   * @param fltPlatX1     left of the platform
+   * @param fltPlatX2     right of the platform
+   * @param fltPlatY1     top of the platform
+   * @param fltPlatY2     bottom of platform
+   */
+  public void stationaryPlatformCollision(int intPlatLength, float fltPlatX1, float fltPlatX2,
+      float fltPlatY1, float fltPlatY2) {
+    // Initializes character positions
+    float fltXPos2 = fltXPos + intWidthMC;
+    float fltYPos2 = fltYPos + intHeightMC;
+    float fltXMiddle = fltXPos + intWidthMC / 2;
+    float fltYMiddle = fltYPos + intHeightMC / 2;
+
+    boolean blnRightOfPlat = isRightofPlatform(intPlatLength, fltXMiddle, fltPlatX1);
+
+    if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
+      fltYSpeed = 0;
+      fltYPos = setPosition(fltYPos, fltPlatY1);
+    } else if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
+      fltYSpeed = resetVerticalSpeed(fltYSpeed);
+      fltYPos = setPosition(fltYPos, fltPlatY1);
+      fltPreJumpPos = fltYPos;
+    } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2,
+        fltYSpeed)) {
+      fltYSpeed = 0;
+      fltYPos = setPosition(fltYPos, fltPlatY1);
+    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)
+        && blnRightOfPlat) {
+      blnSprint = false;
+      blnLeft = false;
+      fltXPos = fltPlatX2;
+    } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)
+        && !blnRightOfPlat) {
+      blnSprint = false;
+      blnRight = false;
+      fltXPos = fltPlatX1 - intWidthMC;
     }
+  }
 
-    // Calculates dash timer
+  /**
+   * Calculates the dash timer and its position
+   */
+  public void dashTimer() {
     if (blnCanDash) {
       intDashCount = 0;
       strDashDisplay = "DASH";
@@ -374,114 +453,17 @@ public class Sketch extends PApplet {
       intDashCount = 1;
       strDashDisplay = "" + intDashCount;
     }
-
-    // Draws the character then alters its movement based on its state
-    if (blnCrouch) {
-      // Alters movement in crouch position
-      fltJumpHeight = -6;
-      fltMaxSpeed = 3;
-
-      // Draws dash timer
-      textSize(20);
-      textAlign(CENTER, CENTER);
-      text(strDashDisplay, fltXMiddle, fltYPos + 20);
-
-      // Draws character
-      image(imgCrouch, fltXPos, fltYPos + (intHeightMC - intCrouchHeightMC));
-
-      // Dash to the right
-    } else if (blnDash && fltXPos < fltDashDist && imgDash == imgDashR) {
-      fltYSpeed = 0;
-      fltXPos += 10;
-      image(imgDash, fltXPos, fltYPos);
-
-      // Dash to the left
-    } else if (blnDash && imgMC == imgLeft && fltXPos > fltDashDist) {
-      fltYSpeed = 0;
-      fltXPos -= 10;
-      image(imgDash, fltXPos, fltYPos);
-
-      // Resets charcter to normal state
-    } else {
-      blnDash = false;
-      fltDashDist = 0;
-      fltPreDashPos = 0;
-      fltJumpHeight = -10;
-      fltMaxSpeed = 5;
-
-      // Draws dash timer
-      textSize(20);
-      textAlign(CENTER, CENTER);
-      text(strDashDisplay, fltXMiddle, fltYPos - 15);
-
-      // Draws character
-      image(imgMC, fltXPos, fltYPos);
-    }
   }
 
   /**
-   * Handles key press events to control the main character's movements.
+   * Checks if character can dash
    */
-  public void keyPressed() {
-    if (keyCode == UP && fltYPos == fltPreJumpPos) {
-      blnJump = true;
+  public boolean canDash() {
+    if (!blnCanDash && millis() - intLastDashTime >= intDashCooldown) {
+      blnCanDash = true;
     }
-    if (keyCode == LEFT) {
-      blnLeft = true;
-    }
-    if (keyCode == RIGHT) {
-      blnRight = true;
-    }
-    if (key == 'z' && blnCrouch == false) {
-      blnSprint = true;
-    }
-    if (key == 'x') {
-      blnCrouch = true;
-    }
-    if (key == ' ' && blnCanDash) {
-      blnDash = true;
-      fltPreDashPos = fltXPos;
 
-      // When facing right
-      if (imgDash == imgDashR) {
-        // Stops character from dashing past the scrolling point
-        if (fltXPos >= width - 200 - intWidthMC - fltDashLength) {
-          fltDashDist = fltXPos + (width - 210 - fltXPos - intWidthMC); // Adds the distance from the scrolling point
-        } else {
-          fltDashDist = fltXPos + fltDashLength;
-        }
-        // When facing left
-      } else if (imgDash == imgDashL) {
-        // Stops character from dashing off the left side of the screen
-        if (fltXPos <= fltDashLength) {
-          fltDashDist = fltXPos - fltXPos;
-        } else {
-          fltDashDist = fltXPos - fltDashLength - intWidthMC;
-        }
-      }
-
-      // Updates cooldown variables
-      intLastDashTime = millis();
-      blnCanDash = false;
-    }
-  }
-
-  /**
-   * Handles key release events to control the main character's movements.
-   */
-  public void keyReleased() {
-    if (keyCode == LEFT) {
-      blnLeft = false;
-    }
-    if (keyCode == RIGHT) {
-      blnRight = false;
-    }
-    if (key == 'z') {
-      blnSprint = false;
-    }
-    if (key == 'x') {
-      blnCrouch = false;
-    }
+    return blnCanDash;
   }
 
   /**
@@ -510,7 +492,7 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Checks if the character is on the right side of a stationary platform
+   * Checks if the character is on the right side of a platform
    * 
    * @param intLength amount of platform blocks
    * @param fltMiddle middle of character horizontally
@@ -606,5 +588,70 @@ public class Sketch extends PApplet {
   public boolean isHitByPlatform(float fltX, float fltY1, float fltY2, float fltPlatX1, float fltPlatX2,
       float fltPlatY1, float fltPlatY2) {
     return fltY2 > fltPlatY1 && fltY1 < fltPlatY2 && fltX > fltPlatX1 && fltX < fltPlatX2;
+  }
+
+  /**
+   * Handles key press events to control the main character's movements.
+   */
+  public void keyPressed() {
+    if (keyCode == UP && fltYPos == fltPreJumpPos) {
+      blnJump = true;
+    }
+    if (keyCode == LEFT) {
+      blnLeft = true;
+    }
+    if (keyCode == RIGHT) {
+      blnRight = true;
+    }
+    if (key == 'z' && blnCrouch == false) {
+      blnSprint = true;
+    }
+    if (key == 'x') {
+      blnCrouch = true;
+    }
+    if (key == ' ' && blnCanDash) {
+      blnDash = true;
+      fltPreDashPos = fltXPos;
+
+      // When facing right
+      if (imgDash == imgDashR) {
+        // Stops character from dashing past the scrolling point
+        if (fltXPos >= width - 200 - intWidthMC - fltDashLength) {
+          fltDashDist = fltXPos + (width - 210 - fltXPos - intWidthMC); // Adds the distance from the scrolling point
+        } else {
+          fltDashDist = fltXPos + fltDashLength;
+        }
+        // When facing left
+      } else if (imgDash == imgDashL) {
+        // Stops character from dashing off the left side of the screen
+        if (fltXPos <= fltDashLength) {
+          fltDashDist = fltXPos - fltXPos;
+        } else {
+          fltDashDist = fltXPos - fltDashLength - intWidthMC;
+        }
+      }
+
+      // Updates cooldown variables
+      intLastDashTime = millis();
+      blnCanDash = false;
+    }
+  }
+
+  /**
+   * Handles key release events to control the main character's movements.
+   */
+  public void keyReleased() {
+    if (keyCode == LEFT) {
+      blnLeft = false;
+    }
+    if (keyCode == RIGHT) {
+      blnRight = false;
+    }
+    if (key == 'z') {
+      blnSprint = false;
+    }
+    if (key == 'x') {
+      blnCrouch = false;
+    }
   }
 }
