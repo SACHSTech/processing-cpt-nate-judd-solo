@@ -32,21 +32,17 @@ public class Sketch extends PApplet {
   // Moving platforms
   PImage imgBlock;
   ArrayList<Platform> platforms = new ArrayList<Platform>();
-  int intPlatformCount = 6, intBlockSize = 30;
+  int intStartingPlatformCount = 3, intAddedPlatformCount = 3, intPlatformCount = intStartingPlatformCount,
+      intBlockSize = 30;
+  boolean blnCanAddPlatforms = false;
 
-  // Non-moving platform 1
+  // Non-moving platforms
   PImage imgBlock2;
-  int intPlat1Length = 5;
+  int intPlat1Length = 5, intPlat2Length = 4, intPlat3Length = 4;
   float fltPlat1X1 = 10, fltPlat1X2 = intBlockSize * intPlat1Length + fltPlat1X1;
   float fltPlat1Y1 = intScreenH - intBlockSize - 10, fltPlat1Y2 = fltPlat1Y1 + intBlockSize;
-
-  // Non-moving platform 2
-  int intPlat2Length = 4;
   float fltPlat2X1 = intScreenW / 2 - 2 * intBlockSize, fltPlat2X2 = intBlockSize * intPlat2Length + fltPlat2X1;
   float fltPlat2Y1 = intScreenH / 2 - intBlockSize + 20, fltPlat2Y2 = fltPlat2Y1 + intBlockSize;
-
-  // Non-moving platform 3
-  int intPlat3Length = 4;
   float fltPlat3X2 = fltScrollXPos + intWidthMC, fltPlat3X1 = fltPlat3X2 - intBlockSize * intPlat3Length;
   float fltPlat3Y1 = 200, fltPlat3Y2 = fltPlat3Y1 + intBlockSize;
 
@@ -97,7 +93,7 @@ public class Sketch extends PApplet {
 
     // Creates platforms
     for (int i = 0; i < intPlatformCount; i++) {
-      platforms.add(new Platform(this, intBlockSize, platforms));
+      platforms.add(new Platform(this, intBlockSize, intHeightMC, platforms));
 
       // Staggers platforms x positions
       platforms.get(i).setPlatformPositionX(width + 100 * i);
@@ -116,6 +112,26 @@ public class Sketch extends PApplet {
     background(255);
     image(imgMainBG, fltXPosBG, 0);
     image(imgMainBG, fltXPosBG + intScreenW, 0);
+
+    // Checks if more platforms can be added
+    if (intPlatformCount == intStartingPlatformCount + intAddedPlatformCount) {
+      blnCanAddPlatforms = false;
+    } else {
+      for (int i = 0; i < intPlatformCount; i++) {
+        if (platforms.get(i).getPlatformPositionX() < width / 2 - 200) {
+          blnCanAddPlatforms = true;
+        }
+      }
+    }
+
+    // Adds more platforms
+    if (blnCanAddPlatforms) {
+      for (int i = 0; i < intAddedPlatformCount; i++) {
+        platforms.add(new Platform(this, intBlockSize, intHeightMC, platforms));
+      }
+      intPlatformCount += intAddedPlatformCount;
+      blnCanAddPlatforms = false;
+    }
 
     // Draws lives of the screen
     for (int i = intLifeCount; i >= 0; i--) {
@@ -208,23 +224,25 @@ public class Sketch extends PApplet {
     // Collision for platform 1
     boolean blnRightOfPlat1 = isRightofPlatform(intPlat1Length, fltXMiddle, fltPlat1X1);
 
-    if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat1X1, fltPlat1X2, fltPlat1Y1)) {
+    if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2)) {
+      fltYSpeed = 0;
+      fltYPos = setPosition(fltYPos, fltPlat1Y1);
+    } else if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat1X1, fltPlat1X2, fltPlat1Y1)) {
       fltYSpeed = resetVerticalSpeed(fltYSpeed);
       fltYPos = setPosition(fltYPos, fltPlat1Y1);
       fltPreJumpPos = fltYPos;
-    } else if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2)) {
-      fltYSpeed = 0;
-      fltYPos = setPosition(fltYPos, fltPlat1Y1);
     } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2,
         fltYSpeed)) {
       fltYSpeed = 0;
       fltYPos = setPosition(fltYPos, fltPlat1Y1);
     } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2)
         && blnRightOfPlat1) {
+      blnSprint = false;
       blnLeft = false;
       fltXPos = fltPlat1X2;
     } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2)
         && !blnRightOfPlat1) {
+      blnSprint = false;
       blnRight = false;
       fltXPos = fltPlat1X1 - intWidthMC;
     }
@@ -237,23 +255,25 @@ public class Sketch extends PApplet {
     // Collision for platform 2
     boolean blnRightOfPlat2 = isRightofPlatform(intPlat2Length, fltXMiddle, fltPlat2X1);
 
-    if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat2X1, fltPlat2X2, fltPlat2Y1)) {
+    if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2)) {
+      fltYSpeed = 0;
+      fltYPos = setPosition(fltYPos, fltPlat2Y1);
+    } else if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat2X1, fltPlat2X2, fltPlat2Y1)) {
       fltYSpeed = resetVerticalSpeed(fltYSpeed);
       fltYPos = setPosition(fltYPos, fltPlat2Y1);
       fltPreJumpPos = fltYPos;
-    } else if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2)) {
-      fltYSpeed = 0;
-      fltYPos = setPosition(fltYPos, fltPlat2Y1);
     } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2,
         fltYSpeed)) {
       fltYSpeed = 0;
       fltYPos = setPosition(fltYPos, fltPlat2Y1);
     } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2)
         && blnRightOfPlat2) {
+      blnSprint = false;
       blnLeft = false;
       fltXPos = fltPlat2X2;
     } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2)
         && !blnRightOfPlat2) {
+      blnSprint = false;
       blnRight = false;
       fltXPos = fltPlat2X1 - intWidthMC;
     }
@@ -266,23 +286,25 @@ public class Sketch extends PApplet {
     // Collision for platform 3
     boolean blnRightOfPlat3 = isRightofPlatform(intPlat3Length, fltXMiddle, fltPlat3X1);
 
-    if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat3X1, fltPlat3X2, fltPlat3Y1)) {
+    if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2)) {
+      fltYSpeed = 0;
+      fltYPos = setPosition(fltYPos, fltPlat3Y1);
+    } else if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat3X1, fltPlat3X2, fltPlat3Y1)) {
       fltYSpeed = resetVerticalSpeed(fltYSpeed);
       fltYPos = setPosition(fltYPos, fltPlat3Y1);
       fltPreJumpPos = fltYPos;
-    } else if (isInPlatform(fltXPos, fltXPos2, fltYMiddle, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2)) {
-      fltYSpeed = 0;
-      fltYPos = setPosition(fltYPos, fltPlat3Y1);
     } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2,
         fltYSpeed)) {
       fltYSpeed = 0;
       fltYPos = setPosition(fltYPos, fltPlat3Y1);
     } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2)
         && blnRightOfPlat3) {
+          blnSprint = false;
       blnLeft = false;
       fltXPos = fltPlat3X2;
     } else if (isInPlatformOnRight(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2)
         && !blnRightOfPlat3) {
+          blnSprint = false;
       blnRight = false;
       fltXPos = fltPlat3X1 - intWidthMC;
     }
@@ -322,6 +344,7 @@ public class Sketch extends PApplet {
         fltXPos -= fltPlatS;
         // Character cannot run through the platform
         fltXSpeed = 0;
+        blnSprint = false;
         blnRight = false;
       }
     }

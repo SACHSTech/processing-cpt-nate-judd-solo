@@ -24,15 +24,16 @@ public class Platform {
      * 
      * @param papplet   reference to the PApplet instance
      * @param size      width and height of the platform blocks
+     * @param heightMC  height of the character
      * @param platforms array of other platforms to avoid overlapping
      */
-    public Platform(PApplet papplet, int size, ArrayList<Platform> platforms) {
+    public Platform(PApplet papplet, int size, int heightMC, ArrayList<Platform> platforms) {
         p = papplet; // Assign the PApplet reference
         intSize = size;
-        intGap = 36; // 36 allows the character to crouch and fit in the gap with a little extra space (1 pixel)
-        fltSpeed = p.random(1.75f, 3);
+        intGap = heightMC;
+        fltSpeed = 2;
         intLength = (int) p.random(3, 7);
-        fltXPos = p.width; 
+        fltXPos = p.width;
         fltYPos = CreateValidYPosition(platforms); // Sets the y position to a valid position
         imgBlock = p.loadImage("platformBlock.png");
         imgBlock.resize(intSize, intSize);
@@ -56,6 +57,11 @@ public class Platform {
         return fltYPos;
     }
 
+    /**
+     * Getter method for the platform speed
+     * 
+     * @return the platform speed
+     */
     public float getPlatformSpeed() {
         return fltSpeed;
     }
@@ -89,7 +95,7 @@ public class Platform {
         if (fltXPos < 0 - intLength * intSize - 30) {
             fltXPos = p.width;
             fltYPos = CreateValidYPosition(platforms);
-            fltSpeed = p.random(1.75f, 3);
+            fltSpeed = 2;
             intLength = (int) p.random(3, 7);
         }
     }
@@ -108,18 +114,21 @@ public class Platform {
         // Finds a valid platform y position
         while (blnValidY == false) {
             // Sets the y position to a random y position
-            fltNewYPos = p.random(70, p.height - 100);
+            fltNewYPos = p.random(80, p.height - 100);
 
             // Initailizes the y position to true
             blnValidY = true;
 
             // Goes through each element in the arraylist
             for (Platform platform : platforms) {
-                // Y position of current platform being checked
+                // Position of current platform being checked
+                float fltX1 = platform.fltXPos;
                 float fltY1 = platform.fltYPos;
 
                 // Checks if the y position is valid
-                if (fltNewYPos + intBelowGap < fltY1 || fltNewYPos > fltY1 + intBelowGap) {
+                if (fltX1 < p.width / 2) {
+                    blnValidY = true;
+                } else if (fltNewYPos + intBelowGap < fltY1 || fltNewYPos > fltY1 + intBelowGap) {
                     blnValidY = true;
                 } else {
                     blnValidY = false;
