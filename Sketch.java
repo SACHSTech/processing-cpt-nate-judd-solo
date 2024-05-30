@@ -32,7 +32,7 @@ public class Sketch extends PApplet {
 
   // Moving platforms
   PImage imgBlock;
-  ArrayList<Platform> platforms = new ArrayList<Platform>();
+  ArrayList<MovingPlatform> platforms = new ArrayList<MovingPlatform>();
   int intStartingPlatformCount = 3, intAddedPlatformCount = 3, intPlatformCount = intStartingPlatformCount,
       intBlockSize = 30;
   boolean blnCanAddPlatforms = false;
@@ -63,6 +63,11 @@ public class Sketch extends PApplet {
    * Sets up the initial environment.
    */
   public void setup() {
+    // Game and level settings
+    Game game = new Game(this);
+
+    GameLevel level = game.getLevel(currentLevel);
+
     // Background
     imgMainBG = loadImage("Background1.png");
     imgMainBG.resize(intScreenW, intScreenH);
@@ -93,7 +98,7 @@ public class Sketch extends PApplet {
 
     // Creates platforms
     for (int i = 0; i < intPlatformCount; i++) {
-      platforms.add(new Platform(this, intBlockSize, intHeight, platforms));
+      platforms.add(new MovingPlatform(this, intBlockSize, intHeight, platforms));
 
       // Staggers platforms x positions
       platforms.get(i).setPlatformPositionX(width + 100 * i);
@@ -129,6 +134,7 @@ public class Sketch extends PApplet {
     stationaryPlatformCollision(intPlat2Length, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2);
     stationaryPlatformCollision(intPlat3Length, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2);
     movingPlatformCollision(platforms);
+    
   }
 
   /**
@@ -193,7 +199,7 @@ public class Sketch extends PApplet {
     // Adds them to the arraylist
     if (blnCanAddPlatforms) {
       for (int i = 0; i < intAddedPlatformCount; i++) {
-        platforms.add(new Platform(this, intBlockSize, intHeight, platforms));
+        platforms.add(new MovingPlatform(this, intBlockSize, intHeight, platforms));
       }
       intPlatformCount += intAddedPlatformCount;
       blnCanAddPlatforms = false;
@@ -352,7 +358,7 @@ public class Sketch extends PApplet {
    * 
    * @param platforms an array of platforms
    */
-  public void drawMovingPlatform(ArrayList<Platform> platforms) {
+  public void drawMovingPlatform(ArrayList<MovingPlatform> platforms) {
     for (int i = 0; i < platforms.size(); i++) {
       platforms.get(i).platformShift(platforms);
       platforms.get(i).draw();
@@ -378,7 +384,7 @@ public class Sketch extends PApplet {
    * 
    * @param platforms an array of platforms
    */
-  public void movingPlatformCollision(ArrayList<Platform> platforms) {
+  public void movingPlatformCollision(ArrayList<MovingPlatform> platforms) {
     // Initializes character positions
     float fltXPos2 = fltXPos + intWidth;
     float fltYPos2 = fltYPos + intHeight;
