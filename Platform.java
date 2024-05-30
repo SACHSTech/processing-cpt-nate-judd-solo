@@ -3,12 +3,11 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 /**
- * Creates a platform class
+ * Creates the platform class
  * 
  * @author NJudd
  */
 public class Platform {
-
     // Instance variables
     private float fltXPos;
     private float fltYPos;
