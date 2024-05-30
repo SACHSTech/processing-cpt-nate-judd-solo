@@ -16,8 +16,11 @@ public class Platform extends Position {
     /**
      * Constructor: Initializes the platform's position, size, length, and image.
      * 
-     * @param papplet   reference to the PApplet instance
-     * @param size      width and height of the platform blocks
+     * @param papplet reference to the PApplet instance
+     * @param size    width and height of the platform blocks
+     * @param length  amount of blocks in the platform
+     * @param xPos    x position of the platform
+     * @param yPos    y position of the platform
      */
     public Platform(PApplet papplet, int size, int length, float xPos, float yPos) {
         super(xPos, yPos);
@@ -30,7 +33,25 @@ public class Platform extends Position {
     }
 
     /**
-     * Getter method for intLength
+     * Getter method for the reference to the PApplet instance
+     * 
+     * @return th reference to the PApplet instance
+     */
+    public PApplet getPApplet() {
+        return p;
+    }
+
+    /**
+     * Getter method for size
+     * 
+     * @return the width and height of the platform block
+     */
+    public int getSize() {
+        return intSize;
+    }
+
+    /**
+     * Getter method for length
      * 
      * @return the length of the platform
      */
@@ -43,7 +64,7 @@ public class Platform extends Position {
      */
     public void draw() {
         for (int i = 0; i < intLength; i++) {
-            p.image(imgBlock, getPositionX() + i * intSize, getPositionY());
+            p.image(imgBlock, getPosX() + i * intSize, getPosY());
         }
     }
 }

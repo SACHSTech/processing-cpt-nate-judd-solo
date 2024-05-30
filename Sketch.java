@@ -11,14 +11,14 @@ public class Sketch extends PApplet {
   // Background
   PImage imgMainBG;
   int intScreenW = 1000, intScreenH = 800;
-  float fltXPosBG = 0, fltSideScrollX = intScreenW / 2;
+  float fltXPosBG = 0, fltScrollPointX = intScreenW / 2;
 
   // Character
   PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgDash, imgDashR, imgDashL, imgRight, imgLeft;
   // Sizes
   int intWidth = 60, intHeight = 70, intCrouchHeight = 45, intHeightChange = intHeight - intCrouchHeight;
   // Positions
-  float fltXPos = 55, fltYPos = 500, fltPreJumpPos = 0, fltDashDist = 0, fltPreDashPos = 0;
+  float fltXPos = 450, fltYPos = 500, fltPreJumpPos = 0, fltDashDist = 0, fltPreDashPos = 0;
   // Speeds
   float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeed = 5, fltJumpHeight = -9, fltDashLength = 150, fltSprintSpeed = 0;
   float fltAccel = 0.3f, fltDecel = 0.2f, fltGravity = 0.3f;
@@ -30,22 +30,13 @@ public class Sketch extends PApplet {
   int intDashCooldown = 5000, intLastDashTime = 0, intDashCount = 0;
   boolean blnCanDash = true;
 
-  // Moving platforms
-  PImage imgBlock;
-  ArrayList<MovingPlatform> platforms = new ArrayList<MovingPlatform>();
-  int intStartingPlatformCount = 3, intAddedPlatformCount = 3, intPlatformCount = intStartingPlatformCount,
-      intBlockSize = 30;
-  boolean blnCanAddPlatforms = false;
+  // Levels
+  int intCurrentLevel = 1;
 
-  // Non-moving platforms
-  PImage imgBlock2;
-  int intPlat1Length = 5, intPlat2Length = 4, intPlat3Length = 4;
-  float fltPlat1X1 = 10, fltPlat1X2 = intBlockSize * intPlat1Length + fltPlat1X1;
-  float fltPlat1Y1 = intScreenH - intBlockSize - 10, fltPlat1Y2 = fltPlat1Y1 + intBlockSize;
-  float fltPlat2X1 = intScreenW / 2 - 2 * intBlockSize, fltPlat2X2 = intBlockSize * intPlat2Length + fltPlat2X1;
-  float fltPlat2Y1 = intScreenH / 2 - intBlockSize + 30, fltPlat2Y2 = fltPlat2Y1 + intBlockSize;
-  float fltPlat3X1 = 800, fltPlat3X2 = intBlockSize * intPlat3Length + fltPlat3X1;
-  float fltPlat3Y1 = 200, fltPlat3Y2 = fltPlat3Y1 + intBlockSize;
+  // Platforms
+  ArrayList<Platform> staticPlatforms = new ArrayList<Platform>();
+  ArrayList<MovingPlatform> platforms = new ArrayList<MovingPlatform>();
+  int intBlockSize = 30;
 
   // Lives
   PImage imgLives, imgLostLives;
@@ -64,14 +55,54 @@ public class Sketch extends PApplet {
    */
   public void setup() {
     // Game and level settings
-    Game game = new Game(this);
+    // Game game = new Game(this);
 
-    GameLevel level = game.getLevel(currentLevel);
+    // GameLevel level = game.getLevel(intCurrentLevel);
 
     // Background
     imgMainBG = loadImage("Background1.png");
     imgMainBG.resize(intScreenW, intScreenH);
-    // Character states
+
+    setUpCharacterImages();
+
+    // Lives images
+    imgLives = loadImage("heart.png");
+    imgLives.resize(intLifeSize, intLifeSize);
+    imgLostLives = loadImage("heart2.png");
+    imgLostLives.resize(intLifeSize, intLifeSize);
+
+    // Creates platforms
+    staticPlatforms.add(new Platform(this, intBlockSize, 4, 420, 760));
+    platforms.add(new MovingPlatform(2, this, intBlockSize, 4, width, 600));
+  }
+
+  /**
+   * Top level method to execute the program.
+   */
+  public void draw() {
+    drawBackground();
+    drawLives();
+
+    fltSprintSpeed = setSprintSpeed();
+    blnCanDash = canDash();
+    dashTimer();
+    applyGravity();
+
+    horizontalMovement();
+    verticalMovement();
+
+    drawCharacter();
+    drawPlatforms(staticPlatforms, platforms);
+
+    staticPlatformCollision(staticPlatforms);
+    movingPlatformCollision(platforms);
+
+  }
+
+  /**
+   * Initializes all of the different character images
+   */
+  public void setUpCharacterImages() {
     imgRight = loadImage("MainCharacter.png");
     imgRight.resize(intWidth, intHeight);
     imgLeft = loadImage("LeftMC.png");
@@ -87,54 +118,15 @@ public class Sketch extends PApplet {
     imgCrouch = imgCrouchR;
     imgDash = imgDashR;
     imgMC = imgRight;
-
-    // Stationary platforms
-    imgBlock2 = loadImage("platformBlock2.png");
-    imgBlock2.resize(intBlockSize, intBlockSize);
-
-    // Moving platforms
-    imgBlock = loadImage("platformBlock.png");
-    imgBlock.resize(intBlockSize, intBlockSize);
-
-    // Creates platforms
-    for (int i = 0; i < intPlatformCount; i++) {
-      platforms.add(new MovingPlatform(this, intBlockSize, intHeight, platforms));
-
-      // Staggers platforms x positions
-      platforms.get(i).setPlatformPositionX(width + 100 * i);
-    }
-
-    // Lives images
-    imgLives = loadImage("heart.png");
-    imgLives.resize(intLifeSize, intLifeSize);
-    imgLostLives = loadImage("heart2.png");
-    imgLostLives.resize(intLifeSize, intLifeSize);
   }
 
   /**
-   * Top level method to execute the program.
+   * Checks if character has completed previous level then increases the level
+   * 
+   * @return the current level
    */
-  public void draw() {
-    drawBackground();
-    drawLives();
-
-    fltSprintSpeed = setSprintSpeed();
-    blnCanDash = canDash();
-    addPlatforms();
-    dashTimer();
-    applyGravity();
-
-    horizontalMovement();
-    verticalMovement();
-
-    drawCharacter();
-    drawPlatforms();
-
-    stationaryPlatformCollision(intPlat1Length, fltPlat1X1, fltPlat1X2, fltPlat1Y1, fltPlat1Y2);
-    stationaryPlatformCollision(intPlat2Length, fltPlat2X1, fltPlat2X2, fltPlat2Y1, fltPlat2Y2);
-    stationaryPlatformCollision(intPlat3Length, fltPlat3X1, fltPlat3X2, fltPlat3Y1, fltPlat3Y2);
-    movingPlatformCollision(platforms);
-    
+  public int updateCurrentLevel() {
+    return intCurrentLevel;
   }
 
   /**
@@ -182,31 +174,6 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Checks if more platforms can be added and adds them to the arraylist
-   */
-  public void addPlatforms() {
-    // Checks if more platforms can be added
-    if (intPlatformCount == intStartingPlatformCount + intAddedPlatformCount) {
-      blnCanAddPlatforms = false;
-    } else {
-      for (int i = 0; i < intPlatformCount; i++) {
-        if (platforms.get(i).getPlatformPositionX() < width / 2 - 200) {
-          blnCanAddPlatforms = true;
-        }
-      }
-    }
-
-    // Adds them to the arraylist
-    if (blnCanAddPlatforms) {
-      for (int i = 0; i < intAddedPlatformCount; i++) {
-        platforms.add(new MovingPlatform(this, intBlockSize, intHeight, platforms));
-      }
-      intPlatformCount += intAddedPlatformCount;
-      blnCanAddPlatforms = false;
-    }
-  }
-
-  /**
    * Applies gravity to the character
    */
   public void applyGravity() {
@@ -243,11 +210,13 @@ public class Sketch extends PApplet {
       }
 
       // Move character and background
-      if (fltXPos >= fltSideScrollX) {
+      if (fltXPos >= fltScrollPointX) {
+        fltXSpeed = setSprintSpeed();
         fltXPosBG -= fltXSpeed;
       } else {
         fltXPos += fltXSpeed;
       }
+
     } else if (blnLeft) {
       imgMC = imgLeft;
       imgDash = imgDashL;
@@ -307,7 +276,14 @@ public class Sketch extends PApplet {
 
     } else if (blnDash && fltXPos < fltDashDist && imgDash == imgDashR) {
       fltYSpeed = 0;
-      fltXPos += 10;
+
+      if (fltXPos > fltScrollPointX) {
+        blnDash = false;
+        blnRight = false;
+        fltXSpeed = 0;
+      } else {
+        fltXPos += 10;
+      }
 
       image(imgDash, fltXPos, fltYPos);
 
@@ -343,22 +319,15 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Draws all the platforms
+   * Draws platforms
    */
-  public void drawPlatforms() {
-    drawStationaryPlatform(intBlockSize, intPlat1Length, fltPlat1X1, fltPlat1Y1);
-    drawStationaryPlatform(intBlockSize, intPlat2Length, fltPlat2X1, fltPlat2Y1);
-    drawStationaryPlatform(intBlockSize, intPlat3Length, fltPlat3X1, fltPlat3Y1);
+  public void drawPlatforms(ArrayList<Platform> staticPlatforms, ArrayList<MovingPlatform> platforms) {
+    // Static platform
+    for (int i = 0; i < staticPlatforms.size(); i++) {
+      staticPlatforms.get(i).draw();
+    }
 
-    drawMovingPlatform(platforms);
-  }
-
-  /**
-   * Draws moving platforms
-   * 
-   * @param platforms an array of platforms
-   */
-  public void drawMovingPlatform(ArrayList<MovingPlatform> platforms) {
+    // Moving platforms
     for (int i = 0; i < platforms.size(); i++) {
       platforms.get(i).platformShift(platforms);
       platforms.get(i).draw();
@@ -366,23 +335,56 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Draws stationary platforms
+   * Handles collision for static platforms
    * 
-   * @param intSize   size of each platform block
-   * @param intLength length of the platform in blocks
-   * @param fltPlatX  left side of the platform
-   * @param fltPlatY  top of the platform
+   * @param platforms an array of moving platforms
    */
-  public void drawStationaryPlatform(int intSize, int intLength, float fltPlatX, float fltPlatY) {
-    for (int i = 0; i < intLength; i++) {
-      image(imgBlock2, fltPlatX + i * intSize, fltPlatY);
+  public void staticPlatformCollision(ArrayList<Platform> platforms) {
+    // Initializes character positions
+    float fltXPos2 = fltXPos + intWidth;
+    float fltYPos2 = fltYPos + intHeight;
+    float fltXMiddle = fltXPos + intWidth / 2;
+
+    // Iterates through each platform
+    for (int i = 0; i < platforms.size(); i++) {
+      // Initializes attribtues of the platforms
+      float fltPlatX1 = platforms.get(i).getPosX();
+      float fltPlatY1 = platforms.get(i).getPosY();
+      float fltPlatL = platforms.get(i).getLength();
+      float fltPlatX2 = fltPlatX1 + intBlockSize * fltPlatL;
+      float fltPlatY2 = fltPlatY1 + intBlockSize;
+
+      boolean blnRightOfPlat = isRightofPlatform((int) fltPlatL, fltXMiddle, fltPlatX1);
+
+      if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
+        fltYSpeed = resetVerticalSpeed(fltYSpeed);
+        fltYPos = setPosition(fltYPos, fltPlatY1);
+        fltPreJumpPos = fltYPos;
+      } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2,
+          fltYSpeed)) {
+        fltYSpeed = 0;
+        fltYPos = setPosition(fltYPos, fltPlatY1);
+      } else if (isInPlatform(fltXPos2, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)
+          && !blnRightOfPlat) {
+        fltXSpeed = 0;
+        blnSprint = false;
+        blnRight = false;
+        blnDash = false;
+      } else if (isInPlatform(fltXPos2, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)
+          && blnRightOfPlat) {
+        fltXSpeed = 0;
+        fltXPos = fltPlatX2;
+        blnSprint = false;
+        blnRight = false;
+        blnDash = false;
+      }
     }
   }
 
   /**
    * Handles collision for moving platforms
    * 
-   * @param platforms an array of platforms
+   * @param platforms an array of moving platforms
    */
   public void movingPlatformCollision(ArrayList<MovingPlatform> platforms) {
     // Initializes character positions
@@ -391,13 +393,13 @@ public class Sketch extends PApplet {
     float fltXMiddle = fltXPos + intWidth / 2;
 
     // Iterates through each moving platform
-    for (int i = 0; i < intPlatformCount; i++) {
+    for (int i = 0; i < platforms.size(); i++) {
       // Initializes attribtues of the moving platforms
-      float fltPlatX1 = platforms.get(i).getPlatformPositionX();
-      float fltPlatY1 = platforms.get(i).getPlatformPositionY();
-      float fltPlatL = platforms.get(i).getPlatformLength();
-      float fltPlatS = platforms.get(i).getPlatformSpeed();
-      float fltPlatX2 = fltPlatX1 + intBlockSize * fltPlatL + 30;
+      float fltPlatX1 = platforms.get(i).getPosX();
+      float fltPlatY1 = platforms.get(i).getPosY();
+      float fltPlatL = platforms.get(i).getLength();
+      float fltPlatS = platforms.get(i).getSpeed();
+      float fltPlatX2 = fltPlatX1 + intBlockSize * fltPlatL;
       float fltPlatY2 = fltPlatY1 + intBlockSize;
 
       boolean blnRightOfPlat = isRightofPlatform((int) fltPlatL, fltXMiddle, fltPlatX1);
@@ -426,49 +428,6 @@ public class Sketch extends PApplet {
         blnRight = false;
         blnDash = false;
       }
-    }
-  }
-
-  /**
-   * Handles collision for stationary platforms
-   * 
-   * @param intPlatLength length of the platform in blocks
-   * @param fltPlatX1     left of the platform
-   * @param fltPlatX2     right of the platform
-   * @param fltPlatY1     top of the platform
-   * @param fltPlatY2     bottom of platform
-   */
-  public void stationaryPlatformCollision(int intPlatLength, float fltPlatX1, float fltPlatX2,
-      float fltPlatY1, float fltPlatY2) {
-    // Initializes character positions
-    float fltXPos2 = fltXPos + intWidth;
-    float fltYPos2 = fltYPos + intHeight;
-    float fltXMiddle = fltXPos + intWidth / 2;
-
-    boolean blnRightOfPlat = isRightofPlatform(intPlatLength, fltXMiddle, fltPlatX1);
-
-    if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
-      fltYSpeed = resetVerticalSpeed(fltYSpeed);
-      fltYPos = setPosition(fltYPos, fltPlatY1);
-      fltPreJumpPos = fltYPos;
-    } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2,
-        fltYSpeed)) {
-      fltYSpeed = 0;
-      fltYPos = setPosition(fltYPos, fltPlatY1);
-    } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)
-        && blnRightOfPlat) {
-      fltXSpeed = 0;
-      fltXPos = fltPlatX2;
-      blnSprint = false;
-      blnLeft = false;
-      blnDash = false;
-    } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)
-        && !blnRightOfPlat) {
-      fltXSpeed = 0;
-      fltXPos = fltPlatX1 - intWidth;
-      blnSprint = false;
-      blnRight = false;
-      blnDash = false;
     }
   }
 
@@ -640,29 +599,14 @@ public class Sketch extends PApplet {
     }
     if (key == ' ' && blnCanDash) {
       blnDash = true;
-      fltPreDashPos = fltXPos;
-
-      // When facing right
-      if (imgDash == imgDashR) {
-        // Stops character from dashing past the scrolling point
-        if (fltXPos >= width - 200 - intWidth - fltDashLength) {
-          fltDashDist = fltXPos + (width - 210 - fltXPos - intWidth);
-        } else {
-          fltDashDist = fltXPos + fltDashLength;
-        }
-        // When facing left
-      } else if (imgDash == imgDashL) {
-        // Stops character from dashing off the left side of the screen
-        if (fltXPos <= fltDashLength) {
-          fltDashDist = fltXPos - fltXPos;
-        } else {
-          fltDashDist = fltXPos - fltDashLength - intWidth;
-        }
-      }
-
-      // Updates cooldown variables
       intLastDashTime = millis();
       blnCanDash = false;
+
+      if (imgDash == imgDashR) {
+        fltDashDist = fltXPos + fltDashLength;
+      } else if (imgDash == imgDashL) {
+        fltDashDist = fltXPos - fltDashLength - intWidth;
+      }
     }
   }
 

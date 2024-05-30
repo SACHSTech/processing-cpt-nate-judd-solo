@@ -25,7 +25,7 @@ public class Position {
      * 
      * @return the x position
      */
-    public float getPositionX() {
+    public float getPosX() {
         return fltXPos;
     }
 
@@ -34,7 +34,7 @@ public class Position {
      * 
      * @return the y position
      */
-    public float getPositionY() {
+    public float getPosY() {
         return fltYPos;
     }
 
@@ -43,7 +43,7 @@ public class Position {
      * 
      * @param x the x position
      */
-    public void setPositionX(float x) {
+    public void setPosX(float x) {
         fltXPos = x;
     }
 
@@ -52,7 +52,7 @@ public class Position {
      * 
      * @param y the y position
      */
-    public void setPositionY(float y) {
+    public void setPosY(float y) {
         fltXPos = y;
     }
 }
