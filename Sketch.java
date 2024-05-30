@@ -11,16 +11,16 @@ public class Sketch extends PApplet {
   // Background
   PImage imgMainBG;
   int intScreenW = 1000, intScreenH = 800;
-  float fltXPosBG = 0, fltScrollPointX = intScreenW / 2;
+  float fltXPosBG = 0, fltYPosBG = -200, fltScrollX = intScreenW / 2, fltScrollY = intScreenH / 2 - 50;
 
   // Character
   PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgDash, imgDashR, imgDashL, imgRight, imgLeft;
   // Sizes
   int intWidth = 60, intHeight = 70, intCrouchHeight = 45, intHeightChange = intHeight - intCrouchHeight;
   // Positions
-  float fltXPos = 450, fltYPos = 500, fltPreJumpPos = 0, fltDashDist = 0, fltPreDashPos = 0;
+  float fltXPos = 450, fltYPos = 350, fltPreJumpPos = 0, fltDashDist = 0, fltPreDashPos = 0;
   // Speeds
-  float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeed = 5, fltJumpHeight = -9, fltDashLength = 150, fltSprintSpeed = 0;
+  float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeed = 0, fltJumpHeight = 0, fltDashLength = 150;
   float fltAccel = 0.3f, fltDecel = 0.2f, fltGravity = 0.3f;
   // Movement
   boolean blnJump = false, blnLeft = false, blnRight = false, blnSprint = false, blnCrouch = false, blnDash = false;
@@ -34,8 +34,8 @@ public class Sketch extends PApplet {
   int intCurrentLevel = 1;
 
   // Platforms
-  ArrayList<Platform> staticPlatforms = new ArrayList<Platform>();
-  ArrayList<MovingPlatform> platforms = new ArrayList<MovingPlatform>();
+  ArrayList<Platform> platforms = new ArrayList<Platform>();
+  ArrayList<MovingPlatform> movingPlatforms = new ArrayList<MovingPlatform>();
   int intBlockSize = 30;
 
   // Lives
@@ -55,13 +55,12 @@ public class Sketch extends PApplet {
    */
   public void setup() {
     // Game and level settings
-    // Game game = new Game(this);
+    Game game = new Game(this);
 
-    // GameLevel level = game.getLevel(intCurrentLevel);
+    GameLevel level = game.getLevel(intCurrentLevel);
 
     // Background
     imgMainBG = loadImage("Background1.png");
-    imgMainBG.resize(intScreenW, intScreenH);
 
     setUpCharacterImages();
 
@@ -72,8 +71,8 @@ public class Sketch extends PApplet {
     imgLostLives.resize(intLifeSize, intLifeSize);
 
     // Creates platforms
-    staticPlatforms.add(new Platform(this, intBlockSize, 4, 420, 760));
-    platforms.add(new MovingPlatform(2, this, intBlockSize, 4, width, 600));
+    platforms.add(new Platform(this, intBlockSize, 20, 420, 750));
+    movingPlatforms.add(new MovingPlatform(this, intBlockSize, 4, 2, width, 600));
   }
 
   /**
@@ -83,19 +82,19 @@ public class Sketch extends PApplet {
     drawBackground();
     drawLives();
 
-    fltSprintSpeed = setSprintSpeed();
+    fltMaxSpeed = setSpeed();
     blnCanDash = canDash();
     dashTimer();
-    applyGravity();
 
+    applyGravity();
     horizontalMovement();
     verticalMovement();
 
     drawCharacter();
-    drawPlatforms(staticPlatforms, platforms);
+    drawPlatforms(platforms, movingPlatforms);
 
-    staticPlatformCollision(staticPlatforms);
-    movingPlatformCollision(platforms);
+    staticPlatformCollision(platforms);
+    movingPlatformCollision(movingPlatforms);
 
   }
 
@@ -121,25 +120,11 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Checks if character has completed previous level then increases the level
-   * 
-   * @return the current level
-   */
-  public int updateCurrentLevel() {
-    return intCurrentLevel;
-  }
-
-  /**
    * Background logic and draws the background
    */
   public void drawBackground() {
     background(255);
-    image(imgMainBG, fltXPosBG, 0);
-    image(imgMainBG, fltXPosBG + intScreenW, 0);
-
-    if (fltXPosBG <= -width) {
-      fltXPosBG = 0;
-    }
+    image(imgMainBG, fltXPosBG, fltYPosBG);
   }
 
   /**
@@ -184,14 +169,16 @@ public class Sketch extends PApplet {
   /**
    * Calculates maximum speed in the sprinting state
    */
-  public float setSprintSpeed() {
+  public float setSpeed() {
     if (blnSprint) {
-      fltSprintSpeed = fltMaxSpeed;
+      fltMaxSpeed = 5;
+    } else if (blnCrouch) {
+      fltMaxSpeed = 1;
     } else {
-      fltSprintSpeed = fltMaxSpeed * 0.6f;
+      fltMaxSpeed = 3;
     }
 
-    return fltSprintSpeed;
+    return fltMaxSpeed;
   }
 
   /**
@@ -205,13 +192,13 @@ public class Sketch extends PApplet {
 
       // Accelerate right
       fltXSpeed += fltAccel;
-      if (fltXSpeed > fltSprintSpeed) {
-        fltXSpeed = fltSprintSpeed;
+      if (fltXSpeed > fltMaxSpeed) {
+        fltXSpeed = fltMaxSpeed;
       }
 
       // Move character and background
-      if (fltXPos >= fltScrollPointX) {
-        fltXSpeed = setSprintSpeed();
+      if (fltXPos >= fltScrollX) {
+        fltXSpeed = setSpeed();
         fltXPosBG -= fltXSpeed;
       } else {
         fltXPos += fltXSpeed;
@@ -224,8 +211,8 @@ public class Sketch extends PApplet {
 
       // Accelerate left
       fltXSpeed -= fltAccel;
-      if (fltXSpeed < -fltSprintSpeed) {
-        fltXSpeed = -fltSprintSpeed;
+      if (fltXSpeed < -fltMaxSpeed) {
+        fltXSpeed = -fltMaxSpeed;
       }
 
       fltXPos += fltXSpeed;
@@ -253,12 +240,19 @@ public class Sketch extends PApplet {
    * Vertical movement for the character
    */
   public void verticalMovement() {
+    // // Vertical scrolling
+    // if (fltYPos <= fltScrollY) {
+    // fltYPos += fltYSpeed;
+    // fltYPosBG -= fltYSpeed;
+    // }
+
     if (blnJump) {
       if (fltYPos >= fltPreJumpPos) {
         fltYSpeed = fltJumpHeight;
         blnJump = false;
       }
     }
+
   }
 
   /**
@@ -268,7 +262,6 @@ public class Sketch extends PApplet {
   public void drawCharacter() {
     if (blnCrouch) {
       fltJumpHeight = -6;
-      fltMaxSpeed = 3;
 
       drawDashTimer(10);
 
@@ -277,7 +270,7 @@ public class Sketch extends PApplet {
     } else if (blnDash && fltXPos < fltDashDist && imgDash == imgDashR) {
       fltYSpeed = 0;
 
-      if (fltXPos > fltScrollPointX) {
+      if (fltXPos > fltScrollX) {
         blnDash = false;
         blnRight = false;
         fltXSpeed = 0;
@@ -298,7 +291,6 @@ public class Sketch extends PApplet {
       fltDashDist = 0;
       fltPreDashPos = 0;
       fltJumpHeight = -9;
-      fltMaxSpeed = 5;
 
       drawDashTimer(-15);
 
@@ -321,16 +313,16 @@ public class Sketch extends PApplet {
   /**
    * Draws platforms
    */
-  public void drawPlatforms(ArrayList<Platform> staticPlatforms, ArrayList<MovingPlatform> platforms) {
+  public void drawPlatforms(ArrayList<Platform> platforms, ArrayList<MovingPlatform> movingPlatforms) {
     // Static platform
-    for (int i = 0; i < staticPlatforms.size(); i++) {
-      staticPlatforms.get(i).draw();
+    for (int i = 0; i < platforms.size(); i++) {
+      platforms.get(i).draw();
     }
 
     // Moving platforms
-    for (int i = 0; i < platforms.size(); i++) {
-      platforms.get(i).platformShift(platforms);
-      platforms.get(i).draw();
+    for (int i = 0; i < movingPlatforms.size(); i++) {
+      movingPlatforms.get(i).platformShift(movingPlatforms);
+      movingPlatforms.get(i).draw();
     }
   }
 
@@ -384,21 +376,21 @@ public class Sketch extends PApplet {
   /**
    * Handles collision for moving platforms
    * 
-   * @param platforms an array of moving platforms
+   * @param movingPlatforms an array of moving platforms
    */
-  public void movingPlatformCollision(ArrayList<MovingPlatform> platforms) {
+  public void movingPlatformCollision(ArrayList<MovingPlatform> movingPlatforms) {
     // Initializes character positions
     float fltXPos2 = fltXPos + intWidth;
     float fltYPos2 = fltYPos + intHeight;
     float fltXMiddle = fltXPos + intWidth / 2;
 
     // Iterates through each moving platform
-    for (int i = 0; i < platforms.size(); i++) {
+    for (int i = 0; i < movingPlatforms.size(); i++) {
       // Initializes attribtues of the moving platforms
-      float fltPlatX1 = platforms.get(i).getPosX();
-      float fltPlatY1 = platforms.get(i).getPosY();
-      float fltPlatL = platforms.get(i).getLength();
-      float fltPlatS = platforms.get(i).getSpeed();
+      float fltPlatX1 = movingPlatforms.get(i).getPosX();
+      float fltPlatY1 = movingPlatforms.get(i).getPosY();
+      float fltPlatL = movingPlatforms.get(i).getLength();
+      float fltPlatS = movingPlatforms.get(i).getSpeed();
       float fltPlatX2 = fltPlatX1 + intBlockSize * fltPlatL;
       float fltPlatY2 = fltPlatY1 + intBlockSize;
 

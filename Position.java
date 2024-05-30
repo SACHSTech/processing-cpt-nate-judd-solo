@@ -1,3 +1,8 @@
+/**
+ * Position class
+ * 
+ * @author NJudd
+ */
 public class Position {
     private float fltXPos, fltYPos;
 

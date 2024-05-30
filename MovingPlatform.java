@@ -3,7 +3,7 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 /**
- * Creates the platform class
+ * Moving platform class
  * 
  * @author NJudd
  */
@@ -21,7 +21,7 @@ public class MovingPlatform extends Platform {
      * @param xPos    x position of the platform
      * @param yPos    y position of the platform
      */
-    public MovingPlatform(int speed, PApplet papplet, int size, int length, float xPos, float yPos) {
+    public MovingPlatform(PApplet papplet, int size, int length, int speed, float xPos, float yPos) {
         super(papplet, size, length, xPos, yPos);
 
         intSpeed = speed;
