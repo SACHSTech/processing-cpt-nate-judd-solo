@@ -34,7 +34,7 @@ public class MovingPlatform extends Platform {
      * 
      * @return the platform speed
      */
-    public float getSpeed() {
+    public int getSpeed() {
         return intSpeed;
     }
 

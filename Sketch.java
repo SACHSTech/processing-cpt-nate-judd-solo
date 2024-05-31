@@ -11,7 +11,7 @@ public class Sketch extends PApplet {
   // Background
   PImage imgMainBG;
   int intScreenW = 1000, intScreenH = 800;
-  float fltXPosBG = 0, fltYPosBG = -200, fltScrollX = intScreenW / 2, fltScrollY = intScreenH / 2 - 50;
+  float fltXPosBG = 0, fltYPosBG = -200, fltScrollX = intScreenW / 2 - 30, fltScrollY = intScreenH / 2 - 50;
 
   // Character
   PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgDash, imgDashR, imgDashL, imgRight, imgLeft;
@@ -43,6 +43,10 @@ public class Sketch extends PApplet {
   int intLifeSize = 30, intMaxLifeCount = 5, intCurrentLifeCount = intMaxLifeCount, intLostLifeCount = 0;
   float fltLostLivesPos = 0;
 
+  // Game and levels
+  Game game;
+  GameLevel currentLevel;
+
   /**
    * Initializes the size of the canvas.
    */
@@ -55,9 +59,8 @@ public class Sketch extends PApplet {
    */
   public void setup() {
     // Game and level settings
-    Game game = new Game(this);
-
-    GameLevel level = game.getLevel(intCurrentLevel);
+    game = new Game(this);
+    currentLevel = game.getLevel(intCurrentLevel);
 
     // Background
     imgMainBG = loadImage("Background1.png");
@@ -71,7 +74,7 @@ public class Sketch extends PApplet {
     imgLostLives.resize(intLifeSize, intLifeSize);
 
     // Creates platforms
-    platforms.add(new Platform(this, intBlockSize, 20, 420, 750));
+    platforms.add(new Platform(this, intBlockSize, 97, 10, 750));
     movingPlatforms.add(new MovingPlatform(this, intBlockSize, 4, 2, width, 600));
   }
 
@@ -95,7 +98,6 @@ public class Sketch extends PApplet {
 
     staticPlatformCollision(platforms);
     movingPlatformCollision(movingPlatforms);
-
   }
 
   /**
@@ -128,6 +130,41 @@ public class Sketch extends PApplet {
   }
 
   /**
+   * Updates all the moving and static platforms x position
+   */
+  public void updatePlatformsPosX() {
+    for (int i = 0; i < platforms.size(); i++) {
+      updateStaticPlatformPosX(platforms.get(i));
+    }
+    for (int i = 0; i < movingPlatforms.size(); i++) {
+      updateMovingPlatformPosX(movingPlatforms.get(i));
+    }
+  }
+
+  /**
+   * Moves the static platforms with the screen
+   * 
+   * @param platform static platform
+   */
+  public void updateStaticPlatformPosX(Platform platform) {
+    float fltX = platform.getPosX();
+
+    platform.setPosX(fltX -= fltXSpeed);
+  }
+
+  /**
+   * Moves the moving platforms with the screen
+   * 
+   * @param platform static platform
+   */
+  public void updateMovingPlatformPosX(MovingPlatform platform) {
+    float fltX = platform.getPosX();
+    int intSpeed = platform.getSpeed() + (int) fltXSpeed;
+
+    platform.setPosX(fltX -= intSpeed);
+  }
+
+  /**
    * Draws character's lives
    */
   public void drawLives() {
@@ -149,8 +186,7 @@ public class Sketch extends PApplet {
   public int updateLifeCount() {
     if (fltYPos > height + 200) {
       fltYSpeed = 0;
-      fltXPos = 55;
-      fltYPos = 500;
+      setPosition(55, 500);
       intLostLifeCount += 1;
       intCurrentLifeCount -= 1;
     }
@@ -185,21 +221,25 @@ public class Sketch extends PApplet {
    * Horizontal movement for the character
    */
   public void horizontalMovement() {
-    if (blnRight) {
+    if (blnRight && blnLeft) {
+      fltXSpeed = 0;
+
+    } else if (blnRight) {
       imgMC = imgRight;
       imgDash = imgDashR;
       imgCrouch = imgCrouchR;
 
-      // Accelerate right
+      // Accelerate
       fltXSpeed += fltAccel;
       if (fltXSpeed > fltMaxSpeed) {
         fltXSpeed = fltMaxSpeed;
       }
 
       // Move character and background
-      if (fltXPos >= fltScrollX) {
+      if (fltXPos >= fltScrollX && fltXPosBG > -currentLevel.getWidth() + intScreenW + intWidth) {
         fltXSpeed = setSpeed();
         fltXPosBG -= fltXSpeed;
+        updatePlatformsPosX();
       } else {
         fltXPos += fltXSpeed;
       }
@@ -209,13 +249,20 @@ public class Sketch extends PApplet {
       imgDash = imgDashL;
       imgCrouch = imgCrouchL;
 
-      // Accelerate left
+      // Accelerate
       fltXSpeed -= fltAccel;
       if (fltXSpeed < -fltMaxSpeed) {
         fltXSpeed = -fltMaxSpeed;
       }
 
-      fltXPos += fltXSpeed;
+      // Move character and background
+      if (fltXPos <= fltScrollX && fltXPosBG < 0) {
+        fltXSpeed = -setSpeed();
+        fltXPosBG -= fltXSpeed;
+        updatePlatformsPosX();
+      } else {
+        fltXPos += fltXSpeed;
+      }
     } else {
       // Deaccelerate
       if (fltXSpeed > 0) {

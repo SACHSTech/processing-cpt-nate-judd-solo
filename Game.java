@@ -6,7 +6,7 @@ import processing.core.PApplet;
  * 
  * @author NJudd
  */
-public class Game extends GameLevel {
+public class Game {
     // Instance variables
     private ArrayList<GameLevel> levels = new ArrayList<GameLevel>();
 
