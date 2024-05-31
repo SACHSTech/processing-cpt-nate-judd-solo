@@ -1,14 +1,13 @@
 import java.util.ArrayList;
 
 /**
- * Game level class
+ * Creates game levels
  * 
  * @author NJudd
  */
 public class GameLevel {
-    // Instance variables 
+    // Instance variables
     private int intWidth;
-    private int intHeight;
     private ArrayList<Platform> platforms;
     private ArrayList<MovingPlatform> movingPlatforms;
     private String strBgName;
@@ -21,7 +20,6 @@ public class GameLevel {
      */
     public GameLevel() {
         intWidth = 0;
-        intHeight = 0;
         platforms = new ArrayList<Platform>();
         movingPlatforms = new ArrayList<MovingPlatform>();
         strBgName = "";
@@ -34,7 +32,6 @@ public class GameLevel {
      * Constructor: sets game level parameters
      * 
      * @param width    width of the level
-     * @param height   height of the level
      * @param bgImage  background image name
      * @param spawnPos character spawn position
      * @param keyPos   key position
@@ -42,10 +39,9 @@ public class GameLevel {
      * @param p1       static platforms
      * @param p2       moving platforms
      */
-    public GameLevel(int width, int height, String bgImage, Position spawnPos, Position keyPos, Position exitPos,
+    public GameLevel(int width, String bgImage, Position spawnPos, Position keyPos, Position exitPos,
             ArrayList<Platform> p1, ArrayList<MovingPlatform> p2) {
         intWidth = width;
-        intHeight = height;
         strBgName = bgImage;
         spawnPosition = spawnPos;
         keyPosition = keyPos;
@@ -61,15 +57,6 @@ public class GameLevel {
      */
     public int getWidth() {
         return intWidth;
-    }
-
-    /**
-     * Getter method for the level height
-     * 
-     * @return the level height
-     */
-    public int getHeight() {
-        return intHeight;
     }
 
     /**

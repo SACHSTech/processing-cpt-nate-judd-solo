@@ -2,7 +2,7 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 /**
- * Static platform class
+ * creates static platforms
  * 
  * @author NJudd
  */

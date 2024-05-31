@@ -8,10 +8,14 @@ import processing.core.PImage;
  * @author NJudd
  */
 public class Sketch extends PApplet {
+  // Game
+  Game game;
+  int intCurrentLevel = 1;
+
   // Background
-  PImage imgMainBG;
+  PImage imgBackground;
   int intScreenW = 1000, intScreenH = 800;
-  float fltXPosBG = 0, fltYPosBG = -200, fltScrollX = intScreenW / 2 - 30, fltScrollY = intScreenH / 2 - 50;
+  float fltXPosBG = 0, fltYPosBG = 0, fltScrollX = intScreenW / 2 - 30;
 
   // Character
   PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgDash, imgDashR, imgDashL, imgRight, imgLeft;
@@ -20,7 +24,7 @@ public class Sketch extends PApplet {
   // Positions
   float fltXPos = 450, fltYPos = 350, fltPreJumpPos = 0, fltDashDist = 0, fltPreDashPos = 0;
   // Speeds
-  float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeed = 0, fltJumpHeight = 0, fltDashLength = 150;
+  float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeedX = 0, fltMaxSpeedY = 9, fltJumpHeight = 0, fltDashLength = 150;
   float fltAccel = 0.3f, fltDecel = 0.2f, fltGravity = 0.3f;
   // Movement
   boolean blnJump = false, blnLeft = false, blnRight = false, blnSprint = false, blnCrouch = false, blnDash = false;
@@ -29,9 +33,6 @@ public class Sketch extends PApplet {
   String strDashDisplay = "";
   int intDashCooldown = 5000, intLastDashTime = 0, intDashCount = 0;
   boolean blnCanDash = true;
-
-  // Levels
-  int intCurrentLevel = 1;
 
   // Platforms
   ArrayList<Platform> platforms = new ArrayList<Platform>();
@@ -42,10 +43,6 @@ public class Sketch extends PApplet {
   PImage imgLives, imgLostLives;
   int intLifeSize = 30, intMaxLifeCount = 5, intCurrentLifeCount = intMaxLifeCount, intLostLifeCount = 0;
   float fltLostLivesPos = 0;
-
-  // Game and levels
-  Game game;
-  GameLevel currentLevel;
 
   /**
    * Initializes the size of the canvas.
@@ -58,12 +55,12 @@ public class Sketch extends PApplet {
    * Sets up the initial environment.
    */
   public void setup() {
-    // Game and level settings
     game = new Game(this);
-    currentLevel = game.getLevel(intCurrentLevel);
 
-    // Background
-    imgMainBG = loadImage("Background1.png");
+    imgBackground = loadImage(game.getLevel(intCurrentLevel).getBackground());
+
+    fltXPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosX();
+    fltYPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosY();
 
     setUpCharacterImages();
 
@@ -72,10 +69,6 @@ public class Sketch extends PApplet {
     imgLives.resize(intLifeSize, intLifeSize);
     imgLostLives = loadImage("heart2.png");
     imgLostLives.resize(intLifeSize, intLifeSize);
-
-    // Creates platforms
-    platforms.add(new Platform(this, intBlockSize, 97, 10, 750));
-    movingPlatforms.add(new MovingPlatform(this, intBlockSize, 4, 2, width, 600));
   }
 
   /**
@@ -85,7 +78,7 @@ public class Sketch extends PApplet {
     drawBackground();
     drawLives();
 
-    fltMaxSpeed = setSpeed();
+    fltMaxSpeedX = setSpeed();
     blnCanDash = canDash();
     dashTimer();
 
@@ -94,7 +87,9 @@ public class Sketch extends PApplet {
     verticalMovement();
 
     drawCharacter();
-    drawPlatforms(platforms, movingPlatforms);
+    drawPlatforms(
+        game.getLevel(intCurrentLevel).getStaticPlatforms(),
+        game.getLevel(intCurrentLevel).getMovingPlatforms());
 
     staticPlatformCollision(platforms);
     movingPlatformCollision(movingPlatforms);
@@ -122,11 +117,11 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Background logic and draws the background
+   * Draws the background
    */
   public void drawBackground() {
     background(255);
-    image(imgMainBG, fltXPosBG, fltYPosBG);
+    image(imgBackground, fltXPosBG, fltYPosBG);
   }
 
   /**
@@ -198,7 +193,12 @@ public class Sketch extends PApplet {
    * Applies gravity to the character
    */
   public void applyGravity() {
-    fltYSpeed += fltGravity;
+    if (fltYSpeed > fltMaxSpeedY) {
+      fltYSpeed = fltMaxSpeedY;
+    } else {
+      fltYSpeed += fltGravity;
+    }
+
     fltYPos += fltYSpeed;
   }
 
@@ -207,14 +207,14 @@ public class Sketch extends PApplet {
    */
   public float setSpeed() {
     if (blnSprint) {
-      fltMaxSpeed = 5;
+      fltMaxSpeedX = 5;
     } else if (blnCrouch) {
-      fltMaxSpeed = 1;
+      fltMaxSpeedX = 1;
     } else {
-      fltMaxSpeed = 3;
+      fltMaxSpeedX = 3;
     }
 
-    return fltMaxSpeed;
+    return fltMaxSpeedX;
   }
 
   /**
@@ -231,12 +231,12 @@ public class Sketch extends PApplet {
 
       // Accelerate
       fltXSpeed += fltAccel;
-      if (fltXSpeed > fltMaxSpeed) {
-        fltXSpeed = fltMaxSpeed;
+      if (fltXSpeed > fltMaxSpeedX) {
+        fltXSpeed = fltMaxSpeedX;
       }
 
       // Move character and background
-      if (fltXPos >= fltScrollX && fltXPosBG > -currentLevel.getWidth() + intScreenW + intWidth) {
+      if (fltXPos >= fltScrollX && fltXPosBG > -game.getLevel(intCurrentLevel).getWidth() + intScreenW + intWidth) {
         fltXSpeed = setSpeed();
         fltXPosBG -= fltXSpeed;
         updatePlatformsPosX();
@@ -251,8 +251,8 @@ public class Sketch extends PApplet {
 
       // Accelerate
       fltXSpeed -= fltAccel;
-      if (fltXSpeed < -fltMaxSpeed) {
-        fltXSpeed = -fltMaxSpeed;
+      if (fltXSpeed < -fltMaxSpeedX) {
+        fltXSpeed = -fltMaxSpeedX;
       }
 
       // Move character and background
@@ -287,12 +287,6 @@ public class Sketch extends PApplet {
    * Vertical movement for the character
    */
   public void verticalMovement() {
-    // // Vertical scrolling
-    // if (fltYPos <= fltScrollY) {
-    // fltYPos += fltYSpeed;
-    // fltYPosBG -= fltYSpeed;
-    // }
-
     if (blnJump) {
       if (fltYPos >= fltPreJumpPos) {
         fltYSpeed = fltJumpHeight;

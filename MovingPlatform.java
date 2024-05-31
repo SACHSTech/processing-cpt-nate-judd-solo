@@ -3,7 +3,7 @@ import processing.core.PApplet;
 import processing.core.PImage;
 
 /**
- * Moving platform class
+ * Creates moving platforms
  * 
  * @author NJudd
  */
