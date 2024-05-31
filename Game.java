@@ -28,9 +28,9 @@ public class Game {
         levels.add(new GameLevel(
                 2000,
                 "Background1.png",
-                new Position(40, 500),
-                new Position(0, 0),
-                new Position(0, 0),
+                new Position(75, 500),
+                new Position(400, 690),
+                new Position(1700, 640),
                 createStaticPlatforms(1),
                 createMovingPlatforms(1)));
     }
@@ -46,7 +46,8 @@ public class Game {
         ArrayList<Platform> platforms = new ArrayList<Platform>();
 
         if (levelNumber == 1) {
-            platforms.add(new Platform(p, 30, 4, 25, 745));
+            platforms.add(new Platform(p, 30, 5, 50, 750));
+            platforms.add(new Platform(p, 30, 5, 250, 650));
         }
 
         return platforms;

@@ -10,15 +10,16 @@ import processing.core.PImage;
 public class Sketch extends PApplet {
   // Game
   Game game;
-  int intCurrentLevel = 1;
+  int intLevelWidth;
+  int intCurrentLevel = 0;
 
   // Background
   PImage imgBackground;
   int intScreenW = 1000, intScreenH = 800;
-  float fltXPosBG = 0, fltYPosBG = 0, fltScrollX = intScreenW / 2 - 30;
+  float fltXPosBG = 0, fltYPosBG = 0, fltScrollX = intScreenW / 2 - 60;
 
   // Character
-  PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgDash, imgDashR, imgDashL, imgRight, imgLeft;
+  PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgDash, imgDashR, imgDashL, imgRight, imgLeft, imgKeyR, imgKeyL;
   // Sizes
   int intWidth = 60, intHeight = 70, intCrouchHeight = 45, intHeightChange = intHeight - intCrouchHeight;
   // Positions
@@ -35,14 +36,26 @@ public class Sketch extends PApplet {
   boolean blnCanDash = true;
 
   // Platforms
-  ArrayList<Platform> platforms = new ArrayList<Platform>();
-  ArrayList<MovingPlatform> movingPlatforms = new ArrayList<MovingPlatform>();
+  ArrayList<Platform> platforms;
+  ArrayList<MovingPlatform> movingPlatforms;
   int intBlockSize = 30;
 
   // Lives
   PImage imgLives, imgLostLives;
   int intLifeSize = 30, intMaxLifeCount = 5, intCurrentLifeCount = intMaxLifeCount, intLostLifeCount = 0;
   float fltLostLivesPos = 0;
+
+  // Key
+  PImage imgKey;
+  Position keyPosition;
+  int intKeySize = 50;
+  boolean blnHasKey = false;
+
+  // Exit
+  PImage imgExit;
+  Position exitPosition;
+  int intExitSize = 100;
+  boolean blnHasExit = true, blnExit = false;
 
   /**
    * Initializes the size of the canvas.
@@ -57,39 +70,51 @@ public class Sketch extends PApplet {
   public void setup() {
     game = new Game(this);
 
-    imgBackground = loadImage(game.getLevel(intCurrentLevel).getBackground());
-
-    fltXPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosX();
-    fltYPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosY();
-
-    setUpCharacterImages();
+    setupCharacterImages();
 
     // Lives images
     imgLives = loadImage("heart.png");
     imgLives.resize(intLifeSize, intLifeSize);
     imgLostLives = loadImage("heart2.png");
     imgLostLives.resize(intLifeSize, intLifeSize);
+
+    // Key image
+    imgKey = loadImage("key.png");
+    imgKey.resize(intKeySize, intKeySize);
+
+    // Exit image
+    imgExit = loadImage("exit.png");
+    imgExit.resize(intExitSize, intExitSize);
   }
 
   /**
    * Top level method to execute the program.
    */
   public void draw() {
+    setupLevelElements();
+
     drawBackground();
     drawLives();
 
     fltMaxSpeedX = setSpeed();
     blnCanDash = canDash();
-    dashTimer();
 
     applyGravity();
     horizontalMovement();
     verticalMovement();
 
+    drawExit(exitPosition);
+    checkExit(exitPosition);
+
     drawCharacter();
+    dashTimer();
+
     drawPlatforms(
-        game.getLevel(intCurrentLevel).getStaticPlatforms(),
-        game.getLevel(intCurrentLevel).getMovingPlatforms());
+        platforms,
+        movingPlatforms);
+
+    drawKey(keyPosition);
+    checkKey(keyPosition);
 
     staticPlatformCollision(platforms);
     movingPlatformCollision(movingPlatforms);
@@ -98,7 +123,7 @@ public class Sketch extends PApplet {
   /**
    * Initializes all of the different character images
    */
-  public void setUpCharacterImages() {
+  public void setupCharacterImages() {
     imgRight = loadImage("MainCharacter.png");
     imgRight.resize(intWidth, intHeight);
     imgLeft = loadImage("LeftMC.png");
@@ -111,9 +136,40 @@ public class Sketch extends PApplet {
     imgDashR.resize(intWidth, intHeight);
     imgDashL = loadImage("DashLeft.png");
     imgDashL.resize(intWidth, intHeight);
+    imgKeyR = loadImage("characterkeyR.png");
+    imgKeyR.resize(intWidth, intHeight);
+    imgKeyL = loadImage("characterkeyL.png");
+    imgKeyL.resize(intWidth, intHeight);
+
     imgCrouch = imgCrouchR;
     imgDash = imgDashR;
     imgMC = imgRight;
+  }
+
+  /**
+   * Initializes the level elements based on the level number
+   */
+  public void setupLevelElements() {
+    if (blnHasExit) {
+      intCurrentLevel += 1;
+
+      intLevelWidth = game.getLevel(intCurrentLevel).getWidth();
+
+      imgBackground = loadImage(game.getLevel(intCurrentLevel).getBackground());
+
+      fltXPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosX();
+      fltYPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosY();
+
+      keyPosition = game.getLevel(intCurrentLevel).getKeyPosition();
+      exitPosition = game.getLevel(intCurrentLevel).getExitPosition();
+
+      platforms = game.getLevel(intCurrentLevel).getStaticPlatforms();
+      movingPlatforms = game.getLevel(intCurrentLevel).getMovingPlatforms();
+
+      blnExit = false;
+      blnHasKey = false;
+      blnHasExit = false;
+    }
   }
 
   /**
@@ -125,14 +181,30 @@ public class Sketch extends PApplet {
   }
 
   /**
+   * Draws platforms
+   */
+  public void drawPlatforms(ArrayList<Platform> platforms, ArrayList<MovingPlatform> movingPlatforms) {
+    // Static platform
+    for (int i = 0; i < platforms.size(); i++) {
+      platforms.get(i).draw();
+    }
+
+    // Moving platforms
+    for (int i = 0; i < movingPlatforms.size(); i++) {
+      movingPlatforms.get(i).platformShift(movingPlatforms);
+      movingPlatforms.get(i).draw();
+    }
+  }
+
+  /**
    * Updates all the moving and static platforms x position
    */
-  public void updatePlatformsPosX() {
+  public void updatePlatformsPos() {
     for (int i = 0; i < platforms.size(); i++) {
-      updateStaticPlatformPosX(platforms.get(i));
+      updateStaticPlatformPos(platforms.get(i));
     }
     for (int i = 0; i < movingPlatforms.size(); i++) {
-      updateMovingPlatformPosX(movingPlatforms.get(i));
+      updateMovingPlatformPos(movingPlatforms.get(i));
     }
   }
 
@@ -141,7 +213,7 @@ public class Sketch extends PApplet {
    * 
    * @param platform static platform
    */
-  public void updateStaticPlatformPosX(Platform platform) {
+  public void updateStaticPlatformPos(Platform platform) {
     float fltX = platform.getPosX();
 
     platform.setPosX(fltX -= fltXSpeed);
@@ -152,11 +224,27 @@ public class Sketch extends PApplet {
    * 
    * @param platform static platform
    */
-  public void updateMovingPlatformPosX(MovingPlatform platform) {
+  public void updateMovingPlatformPos(MovingPlatform platform) {
     float fltX = platform.getPosX();
     int intSpeed = platform.getSpeed() + (int) fltXSpeed;
 
     platform.setPosX(fltX -= intSpeed);
+  }
+
+  /**
+   * Removes a life from the character then respawns
+   * 
+   * @return the updated life count
+   */
+  public int updateLifeCount() {
+    if (fltYPos > height + 200) {
+      fltYSpeed = 0;
+      setPosition(55, 500);
+      intLostLifeCount += 1;
+      intCurrentLifeCount -= 1;
+    }
+
+    return intCurrentLifeCount;
   }
 
   /**
@@ -174,19 +262,89 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Removes a life from the character then respawns
+   * Moves the key with the screen
    * 
-   * @return the updated life count
    */
-  public int updateLifeCount() {
-    if (fltYPos > height + 200) {
-      fltYSpeed = 0;
-      setPosition(55, 500);
-      intLostLifeCount += 1;
-      intCurrentLifeCount -= 1;
+  public void updateKeyPosition() {
+    Position keyPos = keyPosition;
+    float fltX = keyPos.getPosX();
+
+    keyPos.setPosX(fltX -= fltXSpeed);
+  }
+
+  /**
+   * Draws the key if the character does not have the key
+   * 
+   * @param keyPosition position of the key
+   */
+  public void drawKey(Position keyPosition) {
+    if (!blnHasKey) {
+      image(imgKey, keyPosition.getPosX(), keyPosition.getPosY());
+    }
+  }
+
+  /**
+   * Checks if the character has the key
+   * 
+   * @param position key position
+   * @return if the character has the key or not
+   */
+  public boolean checkKey(Position position) {
+    float fltXMiddle = fltXPos + intWidth / 2;
+    float fltYMiddle = fltYPos + intHeight / 2;
+    float keyX1 = position.getPosX();
+    float keyX2 = keyX1 + intKeySize;
+    float keyY1 = position.getPosY();
+    float keyY2 = keyY1 + intKeySize;
+
+    if (!blnHasKey && fltXMiddle < keyX2 && fltXMiddle > keyX1 && fltYMiddle < keyY2 && fltYMiddle > keyY1) {
+      blnHasKey = true;
     }
 
-    return intCurrentLifeCount;
+    return blnHasKey;
+  }
+
+  /**
+   * Moves the exit with the screen
+   */
+  public void updateExitPosition() {
+    Position exitPos = exitPosition;
+    float fltX = exitPos.getPosX();
+
+    exitPos.setPosX(fltX -= fltXSpeed);
+  }
+
+  /**
+   * Draws the exit
+   * 
+   * @param exitPosition position of the exit
+   */
+  public void drawExit(Position exitPosition) {
+    image(imgExit, exitPosition.getPosX(), exitPosition.getPosY());
+  }
+
+  /**
+   * Checks if the character is on the exit
+   * 
+   * @param position exit position
+   * @return if the character is on the exit or not
+   */
+  public boolean checkExit(Position position) {
+    float fltXMiddle = fltXPos + intWidth / 2;
+    float fltYPos2 = fltYPos + intHeight;
+    float exitX1 = position.getPosX();
+    float exitX2 = exitX1 + intKeySize;
+    float exitY1 = position.getPosY();
+    float exitY2 = exitY1 + intKeySize;
+
+    if (!blnHasExit && blnHasKey && fltXMiddle < exitX2 && fltXMiddle > exitX1 && fltYPos < exitY2
+        && fltYPos2 > exitY1) {
+      blnHasExit = true;
+    } else {
+      blnHasExit = false;
+    }
+
+    return blnHasExit;
   }
 
   /**
@@ -217,6 +375,30 @@ public class Sketch extends PApplet {
     return fltMaxSpeedX;
   }
 
+  public void updateCharacterImage() {
+    if (blnRight) {
+      if (blnHasKey) {
+        imgMC = imgKeyR;
+      } else {
+        imgMC = imgRight;
+      }
+
+      imgDash = imgDashR;
+      imgCrouch = imgCrouchR;
+    }
+
+    if (blnLeft) {
+      if (blnHasKey) {
+        imgMC = imgKeyL;
+      } else {
+        imgMC = imgLeft;
+      }
+
+      imgDash = imgDashL;
+      imgCrouch = imgCrouchL;
+    }
+  }
+
   /**
    * Horizontal movement for the character
    */
@@ -225,9 +407,7 @@ public class Sketch extends PApplet {
       fltXSpeed = 0;
 
     } else if (blnRight) {
-      imgMC = imgRight;
-      imgDash = imgDashR;
-      imgCrouch = imgCrouchR;
+      updateCharacterImage();
 
       // Accelerate
       fltXSpeed += fltAccel;
@@ -236,18 +416,18 @@ public class Sketch extends PApplet {
       }
 
       // Move character and background
-      if (fltXPos >= fltScrollX && fltXPosBG > -game.getLevel(intCurrentLevel).getWidth() + intScreenW + intWidth) {
+      if (fltXPos >= fltScrollX && fltXPosBG > -intLevelWidth + intScreenW + intWidth) {
         fltXSpeed = setSpeed();
         fltXPosBG -= fltXSpeed;
-        updatePlatformsPosX();
+        updatePlatformsPos();
+        updateKeyPosition();
+        updateExitPosition();
       } else {
         fltXPos += fltXSpeed;
       }
 
     } else if (blnLeft) {
-      imgMC = imgLeft;
-      imgDash = imgDashL;
-      imgCrouch = imgCrouchL;
+      updateCharacterImage();
 
       // Accelerate
       fltXSpeed -= fltAccel;
@@ -259,7 +439,9 @@ public class Sketch extends PApplet {
       if (fltXPos <= fltScrollX && fltXPosBG < 0) {
         fltXSpeed = -setSpeed();
         fltXPosBG -= fltXSpeed;
-        updatePlatformsPosX();
+        updatePlatformsPos();
+        updateKeyPosition();
+        updateExitPosition();
       } else {
         fltXPos += fltXSpeed;
       }
@@ -349,22 +531,6 @@ public class Sketch extends PApplet {
     textSize(20);
     textAlign(CENTER, CENTER);
     text(strDashDisplay, fltXMiddle, fltYPos + intAdjustPosition);
-  }
-
-  /**
-   * Draws platforms
-   */
-  public void drawPlatforms(ArrayList<Platform> platforms, ArrayList<MovingPlatform> movingPlatforms) {
-    // Static platform
-    for (int i = 0; i < platforms.size(); i++) {
-      platforms.get(i).draw();
-    }
-
-    // Moving platforms
-    for (int i = 0; i < movingPlatforms.size(); i++) {
-      movingPlatforms.get(i).platformShift(movingPlatforms);
-      movingPlatforms.get(i).draw();
-    }
   }
 
   /**
@@ -640,6 +806,9 @@ public class Sketch extends PApplet {
       } else if (imgDash == imgDashL) {
         fltDashDist = fltXPos - fltDashLength - intWidth;
       }
+    }
+    if (keyCode == DOWN) {
+      blnExit = true;
     }
   }
 
