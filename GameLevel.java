@@ -112,4 +112,30 @@ public class GameLevel {
     public ArrayList<MovingPlatform> getMovingPlatforms() {
         return movingPlatforms;
     }
+
+    /**
+     * Gets the x position of each static platform
+     * 
+     * @return an ArrayList of x positions of static platforms
+     */
+    public ArrayList<Float> getStaticPlatformPositions() {
+        ArrayList<Float> positions = new ArrayList<Float>();
+
+        for (Platform platform : platforms) {
+            positions.add(platform.getPosX());
+        }
+
+        return positions;
+    }
+
+    /**
+     * Sets the x position of each static platform
+     * 
+     * @param positions an ArrayList of x positions to set
+     */
+    public void setStaticPlatformPositions(ArrayList<Float> positions) {
+        for (int i = 0; i < platforms.size(); i++) {
+            platforms.get(i).setPosX(positions.get(i));
+        }
+    }
 }

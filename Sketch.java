@@ -23,7 +23,7 @@ public class Sketch extends PApplet {
   // Sizes
   int intWidth = 60, intHeight = 70, intCrouchHeight = 45, intHeightChange = intHeight - intCrouchHeight;
   // Positions
-  float fltXPos = 450, fltYPos = 350, fltPreJumpPos = 0, fltDashDist = 0, fltPreDashPos = 0;
+  float fltXPos = 450, fltYPos = 350, fltPreJumpPos = 0, fltDashDist = 0, fltDashDistBG = 0;
   // Speeds
   float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeedX = 0, fltMaxSpeedY = 9, fltJumpHeight = 0, fltDashLength = 150;
   float fltAccel = 0.3f, fltDecel = 0.2f, fltGravity = 0.3f;
@@ -38,6 +38,7 @@ public class Sketch extends PApplet {
   // Platforms
   ArrayList<Platform> platforms;
   ArrayList<MovingPlatform> movingPlatforms;
+  ArrayList<Float> platformPositions;
   int intBlockSize = 30;
 
   // Lives
@@ -91,7 +92,7 @@ public class Sketch extends PApplet {
    * Top level method to execute the program.
    */
   public void draw() {
-    setupLevelElements();
+    setupLevel();
 
     drawBackground();
     drawLives();
@@ -149,27 +150,42 @@ public class Sketch extends PApplet {
   /**
    * Initializes the level elements based on the level number
    */
-  public void setupLevelElements() {
+  public void setupLevel() {
     if (blnHasExit) {
       intCurrentLevel += 1;
+
+      platformPositions = game.getLevel(intCurrentLevel).getStaticPlatformPositions();
 
       intLevelWidth = game.getLevel(intCurrentLevel).getWidth();
 
       imgBackground = loadImage(game.getLevel(intCurrentLevel).getBackground());
 
-      fltXPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosX();
-      fltYPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosY();
-
-      keyPosition = game.getLevel(intCurrentLevel).getKeyPosition();
-      exitPosition = game.getLevel(intCurrentLevel).getExitPosition();
+      resetLevel();
 
       platforms = game.getLevel(intCurrentLevel).getStaticPlatforms();
       movingPlatforms = game.getLevel(intCurrentLevel).getMovingPlatforms();
 
-      blnExit = false;
-      blnHasKey = false;
       blnHasExit = false;
     }
+  }
+
+  /**
+   * Resets the level elements and background position
+   */
+  public void resetLevel() {
+    fltXPosBG = 0;
+
+    game.getLevel(intCurrentLevel).setStaticPlatformPositions(platformPositions);
+
+    fltXPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosX();
+    fltYPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosY();
+
+    keyPosition = game.getLevel(intCurrentLevel).getKeyPosition();
+    exitPosition = game.getLevel(intCurrentLevel).getExitPosition();
+
+    imgMC = imgRight;
+    blnExit = false;
+    blnHasKey = false;
   }
 
   /**
@@ -239,7 +255,11 @@ public class Sketch extends PApplet {
   public int updateLifeCount() {
     if (fltYPos > height + 200) {
       fltYSpeed = 0;
-      setPosition(55, 500);
+
+      resetLevel();
+
+      fltXPosBG = 0;
+
       intLostLifeCount += 1;
       intCurrentLifeCount -= 1;
     }
@@ -490,13 +510,11 @@ public class Sketch extends PApplet {
 
       image(imgCrouch, fltXPos, fltYPos + (intHeightChange));
 
-    } else if (blnDash && fltXPos < fltDashDist && imgDash == imgDashR) {
+    } else if (blnDash && fltXPos < fltDashDist && fltXPosBG > fltDashDistBG && imgDash == imgDashR) {
       fltYSpeed = 0;
 
       if (fltXPos > fltScrollX) {
-        blnDash = false;
-        blnRight = false;
-        fltXSpeed = 0;
+        fltXPosBG -= fltXSpeed;
       } else {
         fltXPos += 10;
       }
@@ -512,7 +530,6 @@ public class Sketch extends PApplet {
     } else {
       blnDash = false;
       fltDashDist = 0;
-      fltPreDashPos = 0;
       fltJumpHeight = -9;
 
       drawDashTimer(-15);
@@ -542,7 +559,6 @@ public class Sketch extends PApplet {
     // Initializes character positions
     float fltXPos2 = fltXPos + intWidth;
     float fltYPos2 = fltYPos + intHeight;
-    float fltXMiddle = fltXPos + intWidth / 2;
 
     // Iterates through each platform
     for (int i = 0; i < platforms.size(); i++) {
@@ -553,8 +569,6 @@ public class Sketch extends PApplet {
       float fltPlatX2 = fltPlatX1 + intBlockSize * fltPlatL;
       float fltPlatY2 = fltPlatY1 + intBlockSize;
 
-      boolean blnRightOfPlat = isRightofPlatform((int) fltPlatL, fltXMiddle, fltPlatX1);
-
       if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
         fltYSpeed = resetVerticalSpeed(fltYSpeed);
         fltYPos = setPosition(fltYPos, fltPlatY1);
@@ -563,18 +577,18 @@ public class Sketch extends PApplet {
           fltYSpeed)) {
         fltYSpeed = 0;
         fltYPos = setPosition(fltYPos, fltPlatY1);
-      } else if (isInPlatform(fltXPos2, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)
-          && !blnRightOfPlat) {
+      } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2 - fltPlatL / 2, fltPlatY1,
+          fltPlatY2)) {
         fltXSpeed = 0;
+        fltXPos -= 1;
         blnSprint = false;
         blnRight = false;
         blnDash = false;
-      } else if (isInPlatform(fltXPos2, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)
-          && blnRightOfPlat) {
+      } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
         fltXSpeed = 0;
-        fltXPos = fltPlatX2;
+        fltXPos += 1;
         blnSprint = false;
-        blnRight = false;
+        blnLeft = false;
         blnDash = false;
       }
     }
@@ -589,7 +603,6 @@ public class Sketch extends PApplet {
     // Initializes character positions
     float fltXPos2 = fltXPos + intWidth;
     float fltYPos2 = fltYPos + intHeight;
-    float fltXMiddle = fltXPos + intWidth / 2;
 
     // Iterates through each moving platform
     for (int i = 0; i < movingPlatforms.size(); i++) {
@@ -601,8 +614,6 @@ public class Sketch extends PApplet {
       float fltPlatX2 = fltPlatX1 + intBlockSize * fltPlatL;
       float fltPlatY2 = fltPlatY1 + intBlockSize;
 
-      boolean blnRightOfPlat = isRightofPlatform((int) fltPlatL, fltXMiddle, fltPlatX1);
-
       if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
         fltYSpeed = resetVerticalSpeed(fltYSpeed);
         fltYPos = setPosition(fltYPos, fltPlatY1);
@@ -612,22 +623,22 @@ public class Sketch extends PApplet {
           fltYSpeed)) {
         fltYSpeed = 0;
         fltYPos = setPosition(fltYPos, fltPlatY1);
-      } else if (isInPlatform(fltXPos2, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)
-          && !blnRightOfPlat) {
-        fltXPos -= fltPlatS;
+      } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2 - fltPlatL / 2, fltPlatY1,
+          fltPlatY2)) {
         fltXSpeed = 0;
+        fltXPos -= fltPlatS;
         blnSprint = false;
         blnRight = false;
         blnDash = false;
-      } else if (isInPlatform(fltXPos2, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)
-          && blnRightOfPlat) {
+      } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
         fltXSpeed = 0;
         fltXPos = fltPlatX2;
         blnSprint = false;
-        blnRight = false;
+        blnLeft = false;
         blnDash = false;
       }
     }
+
   }
 
   /**
@@ -689,18 +700,6 @@ public class Sketch extends PApplet {
   public float setPosition(float fltY, float fltPlatY) {
     fltY = fltPlatY - intHeight;
     return fltY;
-  }
-
-  /**
-   * Checks if the character is on the right side of a platform
-   * 
-   * @param intLength amount of platform blocks
-   * @param fltMiddle middle of character horizontally
-   * @param fltX      left side of platform
-   * @return if the character is on the right side of the platform or not
-   */
-  public boolean isRightofPlatform(int intLength, float fltMiddle, float fltX) {
-    return fltMiddle > fltX + ((intBlockSize * intLength) / 2);
   }
 
   /**
@@ -803,8 +802,10 @@ public class Sketch extends PApplet {
 
       if (imgDash == imgDashR) {
         fltDashDist = fltXPos + fltDashLength;
+        fltDashDistBG = fltXPosBG - fltDashLength;
       } else if (imgDash == imgDashL) {
         fltDashDist = fltXPos - fltDashLength - intWidth;
+        fltDashDistBG = fltXPosBG + fltDashLength + intWidth;
       }
     }
     if (keyCode == DOWN) {

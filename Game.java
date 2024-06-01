@@ -28,8 +28,8 @@ public class Game {
         levels.add(new GameLevel(
                 2000,
                 "Background1.png",
-                new Position(75, 500),
-                new Position(400, 690),
+                new Position(50, 650),
+                new Position(400, 240),
                 new Position(1700, 640),
                 createStaticPlatforms(1),
                 createMovingPlatforms(1)));
@@ -38,7 +38,6 @@ public class Game {
     /**
      * Creates static platforms for the specified level
      * 
-     * @param papplet     reference to the PApplet instance
      * @param levelNumber the level number
      * @return the static platforms
      */
@@ -46,8 +45,11 @@ public class Game {
         ArrayList<Platform> platforms = new ArrayList<Platform>();
 
         if (levelNumber == 1) {
-            platforms.add(new Platform(p, 30, 5, 50, 750));
-            platforms.add(new Platform(p, 30, 5, 250, 650));
+            platforms.add(new Platform(p, 30, 4, 25, 750));
+            platforms.add(new Platform(p, 30, 5, 225, 650));
+            platforms.add(new Platform(p, 30, 7, 25, 375));
+            platforms.add(new Platform(p, 30, 5, 350, 300));
+            platforms.add(new Platform(p, 30, 5, 700, 440));
         }
 
         return platforms;
@@ -56,7 +58,6 @@ public class Game {
     /**
      * Creates moving platforms for the specified level
      * 
-     * @param papplet     reference to the PApplet instance
      * @param levelNumber the level number
      * @return the moving platforms
      */
@@ -64,7 +65,8 @@ public class Game {
         ArrayList<MovingPlatform> platforms = new ArrayList<MovingPlatform>();
 
         if (levelNumber == 1) {
-            platforms.add(new MovingPlatform(p, 30, 5, 2, p.width, 500));
+            platforms.add(new MovingPlatform(p, 30, 6, 2, p.width, 540));
+            platforms.add(new MovingPlatform(p, 30, 6, 2, p.width + 600, 540));
         }
 
         return platforms;
