@@ -19,21 +19,17 @@ public class Sketch extends PApplet {
   float fltXPosBG = 0, fltYPosBG = 0, fltScrollX = intScreenW / 2 - 60;
 
   // Character
-  PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgDash, imgDashR, imgDashL, imgRight, imgLeft, imgKeyR, imgKeyL;
+  PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgRight, imgLeft, imgKeyR, imgKeyL;
   // Sizes
   int intWidth = 60, intHeight = 70, intCrouchHeight = 45, intHeightChange = intHeight - intCrouchHeight;
   // Positions
-  float fltXPos = 450, fltYPos = 350, fltPreJumpPos = 0, fltDashDist = 0, fltDashDistBG = 0;
+  float fltXPos = 450, fltYPos = 350, fltPreJumpPos = 0;
   // Speeds
-  float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeedX = 0, fltMaxSpeedY = 9, fltJumpHeight = 0, fltDashLength = 150;
+  float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeedX = 0, fltMaxSpeedY = 9, fltJumpHeight = 0;
   float fltAccel = 0.3f, fltDecel = 0.2f, fltGravity = 0.3f;
   // Movement
-  boolean blnJump = false, blnLeft = false, blnRight = false, blnSprint = false, blnCrouch = false, blnDash = false;
+  boolean blnJump = false, blnLeft = false, blnRight = false, blnSprint = false, blnCrouch = false;
   boolean blnHasCrouched = false;
-  // Dashing
-  String strDashDisplay = "";
-  int intDashCooldown = 5000, intLastDashTime = 0, intDashCount = 0;
-  boolean blnCanDash = true;
 
   // Platforms
   ArrayList<Platform> platforms;
@@ -50,12 +46,14 @@ public class Sketch extends PApplet {
   PImage imgKey;
   Position keyPosition;
   int intKeySize = 50;
+  float fltKeyX = 0;
   boolean blnHasKey = false;
 
   // Exit
   PImage imgExit;
   Position exitPosition;
   int intExitSize = 100;
+  float fltExitX = 0;
   boolean blnHasExit = true, blnExit = false;
 
   /**
@@ -98,25 +96,24 @@ public class Sketch extends PApplet {
     drawLives();
 
     fltMaxSpeedX = setSpeed();
-    blnCanDash = canDash();
-
+  
     applyGravity();
     horizontalMovement();
     verticalMovement();
-
-    drawExit(exitPosition);
-    checkExit(exitPosition);
-
-    drawCharacter();
-    dashTimer();
 
     drawPlatforms(
         platforms,
         movingPlatforms);
 
-    drawKey(keyPosition);
+    drawKey();
     checkKey(keyPosition);
 
+    drawExit();
+    checkExit(exitPosition);
+
+    drawCharacter();
+
+    screenCollision();
     staticPlatformCollision(platforms);
     movingPlatformCollision(movingPlatforms);
   }
@@ -133,17 +130,12 @@ public class Sketch extends PApplet {
     imgCrouchR.resize(intWidth, intCrouchHeight);
     imgCrouchL = loadImage("LeftMC.png");
     imgCrouchL.resize(intWidth, intCrouchHeight);
-    imgDashR = loadImage("DashMC.png");
-    imgDashR.resize(intWidth, intHeight);
-    imgDashL = loadImage("DashLeft.png");
-    imgDashL.resize(intWidth, intHeight);
     imgKeyR = loadImage("characterkeyR.png");
     imgKeyR.resize(intWidth, intHeight);
     imgKeyL = loadImage("characterkeyL.png");
     imgKeyL.resize(intWidth, intHeight);
 
     imgCrouch = imgCrouchR;
-    imgDash = imgDashR;
     imgMC = imgRight;
   }
 
@@ -155,6 +147,12 @@ public class Sketch extends PApplet {
       intCurrentLevel += 1;
 
       platformPositions = game.getLevel(intCurrentLevel).getStaticPlatformPositions();
+
+      keyPosition = game.getLevel(intCurrentLevel).getKeyPosition();
+      fltKeyX = keyPosition.getPosX();
+
+      exitPosition = game.getLevel(intCurrentLevel).getExitPosition();
+      fltExitX = exitPosition.getPosX();
 
       intLevelWidth = game.getLevel(intCurrentLevel).getWidth();
 
@@ -177,14 +175,13 @@ public class Sketch extends PApplet {
 
     game.getLevel(intCurrentLevel).setStaticPlatformPositions(platformPositions);
 
+    keyPosition.setPosX(fltKeyX);
+    exitPosition.setPosX(fltExitX);
+
     fltXPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosX();
     fltYPos = game.getLevel(intCurrentLevel).getSpawnPosition().getPosY();
 
-    keyPosition = game.getLevel(intCurrentLevel).getKeyPosition();
-    exitPosition = game.getLevel(intCurrentLevel).getExitPosition();
-
     imgMC = imgRight;
-    blnExit = false;
     blnHasKey = false;
   }
 
@@ -258,8 +255,6 @@ public class Sketch extends PApplet {
 
       resetLevel();
 
-      fltXPosBG = 0;
-
       intLostLifeCount += 1;
       intCurrentLifeCount -= 1;
     }
@@ -297,7 +292,7 @@ public class Sketch extends PApplet {
    * 
    * @param keyPosition position of the key
    */
-  public void drawKey(Position keyPosition) {
+  public void drawKey() {
     if (!blnHasKey) {
       image(imgKey, keyPosition.getPosX(), keyPosition.getPosY());
     }
@@ -339,7 +334,7 @@ public class Sketch extends PApplet {
    * 
    * @param exitPosition position of the exit
    */
-  public void drawExit(Position exitPosition) {
+  public void drawExit() {
     image(imgExit, exitPosition.getPosX(), exitPosition.getPosY());
   }
 
@@ -353,12 +348,12 @@ public class Sketch extends PApplet {
     float fltXMiddle = fltXPos + intWidth / 2;
     float fltYPos2 = fltYPos + intHeight;
     float exitX1 = position.getPosX();
-    float exitX2 = exitX1 + intKeySize;
+    float exitX2 = exitX1 + intExitSize;
     float exitY1 = position.getPosY();
-    float exitY2 = exitY1 + intKeySize;
+    float exitY2 = exitY1 + intExitSize;
 
     if (!blnHasExit && blnHasKey && fltXMiddle < exitX2 && fltXMiddle > exitX1 && fltYPos < exitY2
-        && fltYPos2 > exitY1) {
+        && fltYPos2 > exitY1 && blnExit) {
       blnHasExit = true;
     } else {
       blnHasExit = false;
@@ -381,7 +376,7 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Calculates maximum speed in the sprinting state
+   * Calculates the speed in each state
    */
   public float setSpeed() {
     if (blnSprint) {
@@ -403,7 +398,6 @@ public class Sketch extends PApplet {
         imgMC = imgRight;
       }
 
-      imgDash = imgDashR;
       imgCrouch = imgCrouchR;
     }
 
@@ -414,7 +408,6 @@ public class Sketch extends PApplet {
         imgMC = imgLeft;
       }
 
-      imgDash = imgDashL;
       imgCrouch = imgCrouchL;
     }
   }
@@ -504,50 +497,16 @@ public class Sketch extends PApplet {
    */
   public void drawCharacter() {
     if (blnCrouch) {
-      fltJumpHeight = -6;
+      fltJumpHeight = -5.5f;
 
-      drawDashTimer(10);
 
       image(imgCrouch, fltXPos, fltYPos + (intHeightChange));
 
-    } else if (blnDash && fltXPos < fltDashDist && fltXPosBG > fltDashDistBG && imgDash == imgDashR) {
-      fltYSpeed = 0;
-
-      if (fltXPos > fltScrollX) {
-        fltXPosBG -= fltXSpeed;
-      } else {
-        fltXPos += 10;
-      }
-
-      image(imgDash, fltXPos, fltYPos);
-
-    } else if (blnDash && imgMC == imgLeft && fltXPos > fltDashDist) {
-      fltYSpeed = 0;
-      fltXPos -= 10;
-
-      image(imgDash, fltXPos, fltYPos);
-
     } else {
-      blnDash = false;
-      fltDashDist = 0;
-      fltJumpHeight = -9;
-
-      drawDashTimer(-15);
+      fltJumpHeight = -8.5f;
 
       image(imgMC, fltXPos, fltYPos);
     }
-  }
-
-  /**
-   * Draws the dash timer
-   */
-  public void drawDashTimer(int intAdjustPosition) {
-    // Initializes character centre position
-    float fltXMiddle = fltXPos + intWidth / 2;
-
-    textSize(20);
-    textAlign(CENTER, CENTER);
-    text(strDashDisplay, fltXMiddle, fltYPos + intAdjustPosition);
   }
 
   /**
@@ -580,16 +539,14 @@ public class Sketch extends PApplet {
       } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2 - fltPlatL / 2, fltPlatY1,
           fltPlatY2)) {
         fltXSpeed = 0;
-        fltXPos -= 1;
+        fltXPos = fltPlatX1 - intWidth;
         blnSprint = false;
         blnRight = false;
-        blnDash = false;
       } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
         fltXSpeed = 0;
-        fltXPos += 1;
+        fltXPos = fltPlatX2;
         blnSprint = false;
         blnLeft = false;
-        blnDash = false;
       }
     }
   }
@@ -629,52 +586,23 @@ public class Sketch extends PApplet {
         fltXPos -= fltPlatS;
         blnSprint = false;
         blnRight = false;
-        blnDash = false;
       } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
         fltXSpeed = 0;
         fltXPos = fltPlatX2;
         blnSprint = false;
         blnLeft = false;
-        blnDash = false;
       }
     }
-
   }
 
   /**
-   * Calculates the dash timer and its position
+   * Stops the character from exiting the screen from the top
    */
-  public void dashTimer() {
-    if (blnCanDash) {
-      intDashCount = 0;
-      strDashDisplay = "DASH";
-    } else if (millis() - intLastDashTime < 1000) {
-      intDashCount = 5;
-      strDashDisplay = "" + intDashCount;
-    } else if (millis() - intLastDashTime < 2000) {
-      intDashCount = 4;
-      strDashDisplay = "" + intDashCount;
-    } else if (millis() - intLastDashTime < 3000) {
-      intDashCount = 3;
-      strDashDisplay = "" + intDashCount;
-    } else if (millis() - intLastDashTime < 4000) {
-      intDashCount = 2;
-      strDashDisplay = "" + intDashCount;
-    } else if (millis() - intLastDashTime < 5000) {
-      intDashCount = 1;
-      strDashDisplay = "" + intDashCount;
+  public void screenCollision() {
+    if (fltYPos < 0) {
+      fltYSpeed = 0;
+      fltYPos = 0;
     }
-  }
-
-  /**
-   * Checks if character can dash
-   */
-  public boolean canDash() {
-    if (!blnCanDash && millis() - intLastDashTime >= intDashCooldown) {
-      blnCanDash = true;
-    }
-
-    return blnCanDash;
   }
 
   /**
@@ -776,7 +704,7 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Handles key press events to control the main character's movements.
+   * Handles key press events.
    */
   public void keyPressed() {
     if (keyCode == UP && fltYPos == fltPreJumpPos) {
@@ -791,30 +719,17 @@ public class Sketch extends PApplet {
     if (key == 'z' && blnCrouch == false) {
       blnSprint = true;
     }
-    if (key == 'x' && fltYSpeed == 0) {
+    if (keyCode == SHIFT && fltYSpeed == 0) {
       blnCrouch = true;
       blnHasCrouched = true;
     }
-    if (key == ' ' && blnCanDash) {
-      blnDash = true;
-      intLastDashTime = millis();
-      blnCanDash = false;
-
-      if (imgDash == imgDashR) {
-        fltDashDist = fltXPos + fltDashLength;
-        fltDashDistBG = fltXPosBG - fltDashLength;
-      } else if (imgDash == imgDashL) {
-        fltDashDist = fltXPos - fltDashLength - intWidth;
-        fltDashDistBG = fltXPosBG + fltDashLength + intWidth;
-      }
-    }
-    if (keyCode == DOWN) {
+    if (key == ' ') {
       blnExit = true;
     }
   }
 
   /**
-   * Handles key release events to control the main character's movements.
+   * Handles key release events.
    */
   public void keyReleased() {
     if (keyCode == LEFT) {
@@ -826,8 +741,11 @@ public class Sketch extends PApplet {
     if (key == 'z') {
       blnSprint = false;
     }
-    if (key == 'x') {
+    if (keyCode == SHIFT) {
       blnCrouch = false;
+    }
+    if (key == ' ') {
+      blnExit = false;
     }
   }
 }

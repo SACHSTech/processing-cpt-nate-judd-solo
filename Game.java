@@ -29,8 +29,8 @@ public class Game {
                 2000,
                 "Background1.png",
                 new Position(50, 650),
-                new Position(400, 240),
-                new Position(1700, 640),
+                new Position(1075, 70),
+                new Position(1800, 640),
                 createStaticPlatforms(1),
                 createMovingPlatforms(1)));
     }
@@ -45,11 +45,15 @@ public class Game {
         ArrayList<Platform> platforms = new ArrayList<Platform>();
 
         if (levelNumber == 1) {
-            platforms.add(new Platform(p, 30, 4, 25, 750));
+            platforms.add(new Platform(p, 30, 4, 20, 750));
             platforms.add(new Platform(p, 30, 5, 225, 650));
-            platforms.add(new Platform(p, 30, 7, 25, 375));
-            platforms.add(new Platform(p, 30, 5, 350, 300));
-            platforms.add(new Platform(p, 30, 5, 700, 440));
+            platforms.add(new Platform(p, 30, 7, 25, 360));
+            platforms.add(new Platform(p, 30, 5, 350, 260));
+            platforms.add(new Platform(p, 30, 6, 775, 400));
+            platforms.add(new Platform(p, 30, 4, 850, 200));
+            platforms.add(new Platform(p, 30, 6, 1000, 125));
+            platforms.add(new Platform(p, 30, 8, 1250, 600));
+            platforms.add(new Platform(p, 30, 12, 1525, 725));
         }
 
         return platforms;
@@ -65,8 +69,8 @@ public class Game {
         ArrayList<MovingPlatform> platforms = new ArrayList<MovingPlatform>();
 
         if (levelNumber == 1) {
-            platforms.add(new MovingPlatform(p, 30, 6, 2, p.width, 540));
-            platforms.add(new MovingPlatform(p, 30, 6, 2, p.width + 600, 540));
+            platforms.add(new MovingPlatform(p, 30, 6, 2, p.width, 510));
+            platforms.add(new MovingPlatform(p, 30, 6, 2, p.width + 600, 510));
         }
 
         return platforms;
