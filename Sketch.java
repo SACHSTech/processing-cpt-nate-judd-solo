@@ -96,7 +96,7 @@ public class Sketch extends PApplet {
     drawLives();
 
     fltMaxSpeedX = setSpeed();
-  
+
     applyGravity();
     horizontalMovement();
     verticalMovement();
@@ -390,6 +390,9 @@ public class Sketch extends PApplet {
     return fltMaxSpeedX;
   }
 
+  /**
+   * Allows character image to change direction
+   */
   public void updateCharacterImage() {
     if (blnRight) {
       if (blnHasKey) {
@@ -498,7 +501,6 @@ public class Sketch extends PApplet {
   public void drawCharacter() {
     if (blnCrouch) {
       fltJumpHeight = -5.5f;
-
 
       image(imgCrouch, fltXPos, fltYPos + (intHeightChange));
 
@@ -694,10 +696,6 @@ public class Sketch extends PApplet {
   public float adjustCrouchPosition(float fltY) {
     if (blnCrouch) {
       fltY += intHeightChange;
-    } else if (!blnCrouch && blnHasCrouched) {
-      fltY -= intHeightChange;
-    } else if (fltYSpeed == 0) {
-      fltY += fltYSpeed;
     }
 
     return fltY;
@@ -719,7 +717,7 @@ public class Sketch extends PApplet {
     if (key == 'z' && blnCrouch == false) {
       blnSprint = true;
     }
-    if (keyCode == SHIFT && fltYSpeed == 0) {
+    if (key == 'x' && fltYSpeed == 0) {
       blnCrouch = true;
       blnHasCrouched = true;
     }
@@ -741,7 +739,7 @@ public class Sketch extends PApplet {
     if (key == 'z') {
       blnSprint = false;
     }
-    if (keyCode == SHIFT) {
+    if (key == 'x') {
       blnCrouch = false;
     }
     if (key == ' ') {
