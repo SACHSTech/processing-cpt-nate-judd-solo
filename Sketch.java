@@ -37,6 +37,10 @@ public class Sketch extends PApplet {
   ArrayList<Float> platformPositions;
   int intBlockSize = 30;
 
+  // Bird
+  ArrayList<Bird> birds;
+  ArrayList<Float> birdPositions;
+
   // Lives
   PImage imgLives, imgLostLives;
   int intLifeSize = 30, intMaxLifeCount = 5, intCurrentLifeCount = intMaxLifeCount, intLostLifeCount = 0;
@@ -101,9 +105,10 @@ public class Sketch extends PApplet {
     horizontalMovement();
     verticalMovement();
 
-    drawPlatforms(
+    drawObjects(
         platforms,
-        movingPlatforms);
+        movingPlatforms,
+        birds);
 
     drawKey();
     checkKey(keyPosition);
@@ -148,6 +153,8 @@ public class Sketch extends PApplet {
 
       platformPositions = game.getLevel(intCurrentLevel).getStaticPlatformPositions();
 
+      birdPositions = game.getLevel(intCurrentLevel).getBirdPositions();
+
       keyPosition = game.getLevel(intCurrentLevel).getKeyPosition();
       fltKeyX = keyPosition.getPosX();
 
@@ -163,6 +170,8 @@ public class Sketch extends PApplet {
       platforms = game.getLevel(intCurrentLevel).getStaticPlatforms();
       movingPlatforms = game.getLevel(intCurrentLevel).getMovingPlatforms();
 
+      birds = game.getLevel(intCurrentLevel).getBirds();
+
       blnHasExit = false;
     }
   }
@@ -174,6 +183,7 @@ public class Sketch extends PApplet {
     fltXPosBG = 0;
 
     game.getLevel(intCurrentLevel).setStaticPlatformPositions(platformPositions);
+    game.getLevel(intCurrentLevel).setBirdPositions(birdPositions);
 
     keyPosition.setPosX(fltKeyX);
     exitPosition.setPosX(fltExitX);
@@ -194,30 +204,39 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Draws platforms
+   * Draws platforms and birds
    */
-  public void drawPlatforms(ArrayList<Platform> platforms, ArrayList<MovingPlatform> movingPlatforms) {
-    // Static platform
+  public void drawObjects(ArrayList<Platform> platforms, ArrayList<MovingPlatform> movingPlatforms,
+      ArrayList<Bird> birds) {
     for (int i = 0; i < platforms.size(); i++) {
       platforms.get(i).draw();
     }
 
-    // Moving platforms
     for (int i = 0; i < movingPlatforms.size(); i++) {
       movingPlatforms.get(i).platformShift(movingPlatforms);
       movingPlatforms.get(i).draw();
     }
+
+    for (int i = 0; i < birds.size(); i++) {
+      birds.get(i).flyingBird(birds);
+      birds.get(i).draw();
+    }
   }
 
   /**
-   * Updates all the moving and static platforms x position
+   * Updates the moving, static platforms, and birds x position
    */
-  public void updatePlatformsPos() {
+  public void updateObjectPosX() {
     for (int i = 0; i < platforms.size(); i++) {
       updateStaticPlatformPos(platforms.get(i));
     }
+
     for (int i = 0; i < movingPlatforms.size(); i++) {
       updateMovingPlatformPos(movingPlatforms.get(i));
+    }
+
+    for (int i = 0; i < birds.size(); i++) {
+      updateBirdPos(birds.get(i));
     }
   }
 
@@ -242,6 +261,17 @@ public class Sketch extends PApplet {
     int intSpeed = platform.getSpeed() + (int) fltXSpeed;
 
     platform.setPosX(fltX -= intSpeed);
+  }
+
+  /**
+   * Moves the birds with the screen
+   * 
+   * @param platform static platform
+   */
+  public void updateBirdPos(Bird bird) {
+    float fltX = bird.getPosX();
+
+    bird.setPosX(fltX -= fltXSpeed);
   }
 
   /**
@@ -435,7 +465,7 @@ public class Sketch extends PApplet {
       if (fltXPos >= fltScrollX && fltXPosBG > -intLevelWidth + intScreenW + intWidth) {
         fltXSpeed = setSpeed();
         fltXPosBG -= fltXSpeed;
-        updatePlatformsPos();
+        updateObjectPosX();
         updateKeyPosition();
         updateExitPosition();
       } else {
@@ -455,7 +485,7 @@ public class Sketch extends PApplet {
       if (fltXPos <= fltScrollX && fltXPosBG < 0) {
         fltXSpeed = -setSpeed();
         fltXPosBG -= fltXSpeed;
-        updatePlatformsPos();
+        updateObjectPosX();
         updateKeyPosition();
         updateExitPosition();
       } else {
@@ -598,12 +628,17 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Stops the character from exiting the screen from the top
+   * Stops the character from exiting the screen from the top and left
    */
   public void screenCollision() {
     if (fltYPos < 0) {
       fltYSpeed = 0;
       fltYPos = 0;
+    }
+
+    if (fltXPos < 0) {
+      fltXSpeed = 0;
+      fltXPos = 0;
     }
   }
 

@@ -27,12 +27,13 @@ public class Game {
     public void initializeLevels() {
         levels.add(new GameLevel(
                 2000,
-                "Background1.png",
+                "background1.jpg",
                 new Position(50, 650),
                 new Position(1075, 70),
                 new Position(1800, 640),
                 createStaticPlatforms(1),
-                createMovingPlatforms(1)));
+                createMovingPlatforms(1),
+                createBirds(1)));
     }
 
     /**
@@ -74,6 +75,23 @@ public class Game {
         }
 
         return platforms;
+    }
+
+    /**
+     * Creates birds for the specified level
+     * 
+     * @param levelNumber the level number
+     * @return the birds
+     */
+    public ArrayList<Bird> createBirds(int levelNumber) {
+        ArrayList<Bird> birds = new ArrayList<Bird>();
+
+        if (levelNumber == 1) {
+            // Level 1 has no birds
+            birds.add(new Bird(p, 100, 80, 1, 100, 100, false));
+        }
+
+        return birds;
     }
 
     /**

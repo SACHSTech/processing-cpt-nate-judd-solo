@@ -58,6 +58,6 @@ public class Position {
      * @param y the y position
      */
     public void setPosY(float y) {
-        fltXPos = y;
+        fltYPos = y;
     }
 }

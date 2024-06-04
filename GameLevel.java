@@ -10,6 +10,7 @@ public class GameLevel {
     private int intWidth;
     private ArrayList<Platform> platforms;
     private ArrayList<MovingPlatform> movingPlatforms;
+    private ArrayList<Bird> birds;
     private String strBgName;
     private Position spawnPosition;
     private Position keyPosition;
@@ -22,6 +23,7 @@ public class GameLevel {
         intWidth = 0;
         platforms = new ArrayList<Platform>();
         movingPlatforms = new ArrayList<MovingPlatform>();
+        birds = new ArrayList<Bird>();
         strBgName = "";
         spawnPosition = new Position();
         keyPosition = new Position();
@@ -40,7 +42,7 @@ public class GameLevel {
      * @param p2       moving platforms
      */
     public GameLevel(int width, String bgImage, Position spawnPos, Position keyPos, Position exitPos,
-            ArrayList<Platform> p1, ArrayList<MovingPlatform> p2) {
+            ArrayList<Platform> p1, ArrayList<MovingPlatform> p2, ArrayList<Bird> bird) {
         intWidth = width;
         strBgName = bgImage;
         spawnPosition = spawnPos;
@@ -48,6 +50,7 @@ public class GameLevel {
         exitPosition = exitPos;
         platforms = p1;
         movingPlatforms = p2;
+        birds = bird;
     }
 
     /**
@@ -114,6 +117,15 @@ public class GameLevel {
     }
 
     /**
+     * Getter method for the birds
+     * 
+     * @return the birds
+     */
+    public ArrayList<Bird> getBirds() {
+        return birds;
+    }
+
+    /**
      * Gets the x position of each static platform
      * 
      * @return an ArrayList of x positions of static platforms
@@ -129,6 +141,21 @@ public class GameLevel {
     }
 
     /**
+     * Gets the x position of each bird
+     * 
+     * @return an ArrayList of x positions of birds
+     */
+    public ArrayList<Float> getBirdPositions() {
+        ArrayList<Float> positions = new ArrayList<Float>();
+
+        for (Bird bird : birds) {
+            positions.add(bird.getPosX());
+        }
+
+        return positions;
+    }
+
+    /**
      * Sets the x position of each static platform
      * 
      * @param positions an ArrayList of x positions to set
@@ -136,6 +163,17 @@ public class GameLevel {
     public void setStaticPlatformPositions(ArrayList<Float> positions) {
         for (int i = 0; i < platforms.size(); i++) {
             platforms.get(i).setPosX(positions.get(i));
+        }
+    }
+
+    /**
+     * Sets the x position of each bird
+     * 
+     * @param positions an ArrayList of x positions to set
+     */
+    public void setBirdPositions(ArrayList<Float> positions) {
+        for (int i = 0; i < birds.size(); i++) {
+            birds.get(i).setPosX(positions.get(i));
         }
     }
 }
