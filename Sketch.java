@@ -12,6 +12,7 @@ public class Sketch extends PApplet {
   Game game;
   int intLevelWidth;
   int intCurrentLevel = 0;
+  boolean blnStartGame = false, blnControls = false, blnHowTo = false;
 
   // Background
   PImage imgBackground;
@@ -60,6 +61,9 @@ public class Sketch extends PApplet {
   float fltExitX = 0;
   boolean blnHasExit = true, blnExit = false;
 
+  // Mouse
+  boolean blnMouseClicked = false;
+
   /**
    * Initializes the size of the canvas.
    */
@@ -94,33 +98,54 @@ public class Sketch extends PApplet {
    * Top level method to execute the program.
    */
   public void draw() {
-    setupLevel();
+    if (!blnStartGame) {
+      imgBackground = loadImage("titleScreen.jpg");
+      drawBackground();
 
-    drawBackground();
-    drawLives();
+      drawTitleText("PLAY", 700, 410, 180, 70, 255, 0);
+      play(checkForClick(700, 410, 180, 70));
 
-    fltMaxSpeedX = setSpeed();
+      drawTitleText("How To Play", 575, 365, 270, 40, 100, 200);
 
-    applyGravity();
-    horizontalMovement();
-    verticalMovement();
+      drawTitleText("Controls", 500, 400, 200, 40, 100, 200);
+    } else if (blnStartGame && intCurrentLifeCount > 0) {
+      setupLevel();
 
-    drawObjects(
-        platforms,
-        movingPlatforms,
-        birds);
+      drawBackground();
+      drawLives();
 
-    drawKey();
-    checkKey(keyPosition);
+      fltMaxSpeedX = setSpeed();
 
-    drawExit();
-    checkExit(exitPosition);
+      applyGravity();
+      horizontalMovement();
+      verticalMovement();
 
-    drawCharacter();
+      drawObjects(
+          platforms,
+          movingPlatforms,
+          birds);
 
-    screenCollision();
-    staticPlatformCollision(platforms);
-    movingPlatformCollision(movingPlatforms);
+      drawKey();
+      checkKey(keyPosition);
+
+      drawExit();
+      checkExit(exitPosition);
+
+      drawCharacter();
+
+      screenCollision();
+      staticPlatformCollision(platforms);
+      movingPlatformCollision(movingPlatforms);
+      birdCollision(birds);
+    } else {
+      intCurrentLevel = 0;
+
+      imgBackground = loadImage("gameOver.jpg");
+      drawBackground();
+
+      drawTitleText("Play Again?", 700, 350, 300, 50, 255, 0);
+      playAgain(checkForClick(700, 350, 300, 50));
+    }
   }
 
   /**
@@ -201,6 +226,84 @@ public class Sketch extends PApplet {
   public void drawBackground() {
     background(255);
     image(imgBackground, fltXPosBG, fltYPosBG);
+  }
+
+  /**
+   * Prints text buttons on the title screen
+   * 
+   * @param text  the text displayed
+   * @param textY the y position of the text
+   * @param rectX the x position of the rectangle
+   * @param rectW the width of the rectangle
+   */
+  public void drawTitleText(String text, float textY, float rectX, int rectW, int size, int fill1, int fill2) {
+    int intFill1 = 0;
+    int intFill2 = 0;
+    float fltRectY = textY - size / 2;
+    int intRectH = size + 10;
+    if (isInObject(mouseX, mouseX, mouseY, mouseY, rectX, rectX + rectW, fltRectY, fltRectY + intRectH)) {
+      intFill1 = fill1;
+      intFill2 = fill2;
+    } else {
+      intFill1 = fill2;
+      intFill2 = fill1;
+    }
+    stroke(intFill1);
+    fill(intFill2);
+    rect(rectX, fltRectY, rectW, intRectH, 25, 25, 25, 25);
+
+    textAlign(CENTER, CENTER);
+    textSize(size);
+    fill(intFill1);
+    text(text, width / 2, textY);
+  }
+
+  /**
+   * Checks if the player has clicked one of the start buttons
+   * 
+   * @param textY y position of the text
+   * @param rectX x position of the rectantle
+   * @param rectW with of the rectangle
+   * @param size  size of the text
+   * @return if the player has clicked the button or not
+   */
+  public boolean checkForClick(float textY, float rectX, int rectW, int size) {
+    boolean blnClick = false;
+    float fltRectY = textY - size / 2;
+    int intRectH = size + 10;
+
+    if (isInObject(mouseX, mouseX, mouseY, mouseY, rectX, rectX + rectW, fltRectY, fltRectY + intRectH)
+        && blnMouseClicked) {
+      blnClick = true;
+      blnMouseClicked = false;
+    }
+
+    return blnClick;
+  }
+
+  /**
+   * Checks if the player pressed play again then resets the game
+   * 
+   * @param playAgain if the player clicked play again
+   */
+  public void playAgain(boolean playAgain) {
+    if (playAgain) {
+      blnStartGame = false;
+    }
+  }
+
+  /**
+   * Checks if the player presses play
+   * 
+   * @param play
+   */
+  public void play(boolean play) {
+    if (play) {
+      intCurrentLifeCount = intMaxLifeCount;
+      intLostLifeCount = 0;
+      blnHasExit = true;
+      blnStartGame = true;
+    }
   }
 
   /**
@@ -568,13 +671,13 @@ public class Sketch extends PApplet {
           fltYSpeed)) {
         fltYSpeed = 0;
         fltYPos = setPosition(fltYPos, fltPlatY1);
-      } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2 - fltPlatL / 2, fltPlatY1,
+      } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2 - fltPlatL / 2, fltPlatY1,
           fltPlatY2)) {
         fltXSpeed = 0;
         fltXPos = fltPlatX1 - intWidth;
         blnSprint = false;
         blnRight = false;
-      } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
+      } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
         fltXSpeed = 0;
         fltXPos = fltPlatX2;
         blnSprint = false;
@@ -612,16 +715,42 @@ public class Sketch extends PApplet {
           fltYSpeed)) {
         fltYSpeed = 0;
         fltYPos = setPosition(fltYPos, fltPlatY1);
-      } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2 - fltPlatL / 2, fltPlatY1,
+      } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2 - fltPlatL / 2, fltPlatY1,
           fltPlatY2)) {
         fltXSpeed = 0;
         fltXPos -= fltPlatS;
         blnSprint = false;
         blnRight = false;
-      } else if (isInPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
+      } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
         fltXSpeed = 0;
         fltXPos = fltPlatX2;
         blnSprint = false;
+        blnLeft = false;
+      }
+    }
+  }
+
+  /**
+   * Handles collision for birds
+   * 
+   * @param birds an array of bird objects
+   */
+  public void birdCollision(ArrayList<Bird> birds) {
+    // Initializes character positions
+    float fltXPos2 = fltXPos + intWidth;
+    float fltYPos2 = fltYPos + intHeight;
+
+    // Iterates through each bird
+    for (int i = 0; i < birds.size(); i++) {
+      // Initializes attribtues of the birds
+      float fltBirdX1 = birds.get(i).getPosX();
+      float fltBirdY1 = birds.get(i).getPosY();
+      float fltBirdX2 = fltBirdX1 + birds.get(i).getBirdWidth();
+      float fltBirdY2 = fltBirdY1 + birds.get(i).getBirdHeight();
+
+      if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltBirdX1, fltBirdX2, fltBirdY1, fltBirdY2)) {
+        fltYPos = height + 201;
+        blnRight = false;
         blnLeft = false;
       }
     }
@@ -715,7 +844,7 @@ public class Sketch extends PApplet {
    * @param fltPlatY2 bottom of the platform
    * @return if the character is in a platform or not
    */
-  public boolean isInPlatform(float fltX1, float fltX2, float fltY1, float fltY2, float fltPlatX1,
+  public boolean isInObject(float fltX1, float fltX2, float fltY1, float fltY2, float fltPlatX1,
       float fltPlatX2, float fltPlatY1, float fltPlatY2) {
     fltY1 = adjustCrouchPosition(fltY1);
 
@@ -759,6 +888,9 @@ public class Sketch extends PApplet {
     if (key == ' ') {
       blnExit = true;
     }
+    if (keyCode == ENTER) {
+      blnStartGame = true;
+    }
   }
 
   /**
@@ -780,5 +912,12 @@ public class Sketch extends PApplet {
     if (key == ' ') {
       blnExit = false;
     }
+  }
+
+  /**
+   * Handles mouse clicked events.
+   */
+  public void mouseClicked() {
+    blnMouseClicked = true;
   }
 }

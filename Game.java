@@ -88,7 +88,7 @@ public class Game {
 
         if (levelNumber == 1) {
             // Level 1 has no birds
-            birds.add(new Bird(p, 100, 80, 1, 100, 100, false));
+         //   birds.add(new Bird(p, 100, 80, 1, 500, 100, false));
         }
 
         return birds;
