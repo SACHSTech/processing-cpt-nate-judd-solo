@@ -12,7 +12,7 @@ public class Sketch extends PApplet {
   Game game;
   int intLevelWidth;
   int intCurrentLevel = 0;
-  boolean blnStartGame = false, blnControls = false, blnHowTo = false;
+  boolean blnStartGame = false, blnControls = false;;
 
   // Background
   PImage imgBackground;
@@ -98,16 +98,26 @@ public class Sketch extends PApplet {
    * Top level method to execute the program.
    */
   public void draw() {
-    if (!blnStartGame) {
+    // Title screen
+    if (!blnStartGame && !blnControls) {
       imgBackground = loadImage("titleScreen.jpg");
       drawBackground();
+
+      controlScreenCheck();
 
       drawTitleText("PLAY", 700, 410, 180, 70, 200, 100);
       play(checkForClick(700, 410, 180, 70));
 
-      drawTitleText("How To Play", 575, 365, 270, 40, 100, 200);
+      drawTitleText("Controls", 600, 400, 200, 40, 100, 200);
 
-      drawTitleText("Controls", 500, 400, 200, 40, 100, 200);
+      // Control screen
+    } else if (blnControls) {
+      imgBackground = loadImage("controlScreen.jpg");
+      drawBackground();
+
+      backButton();
+
+      // Game
     } else if (blnStartGame && intCurrentLifeCount > 0) {
       setupLevel();
 
@@ -137,6 +147,8 @@ public class Sketch extends PApplet {
       staticPlatformCollision(platforms);
       movingPlatformCollision(movingPlatforms);
       birdCollision(birds);
+
+      // Game over screen
     } else {
       imgBackground = loadImage("gameOver.jpg");
       drawBackground();
@@ -305,6 +317,29 @@ public class Sketch extends PApplet {
       blnStartGame = true;
       intCurrentLevel = 0;
       blnHasExit = true;
+    }
+  }
+
+  /**
+   * Checks if the player clicks on the controls button
+   */
+  public void controlScreenCheck() {
+    if (mouseX < 600 && mouseX > 400 && mouseY < 630 && mouseY > 580 && blnMouseClicked) {
+      blnControls = true;
+    }
+  }
+
+  /**
+   * Checks if the player clicks the back button then returns to title screen
+   */
+  public void backButton() {
+    drawTitleText("Back", 750, 435, 130, 40, 100, 200);
+
+    if (blnMouseClicked && mouseX < 565 && mouseX > 435 && mouseY < 780 && mouseY > 730) {
+      blnMouseClicked = false;
+      blnControls = false;
+    } else {
+      blnMouseClicked = false;
     }
   }
 

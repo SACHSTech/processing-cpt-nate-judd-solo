@@ -34,10 +34,11 @@ public class Game {
                 createStaticPlatforms(1),
                 createMovingPlatforms(1),
                 createBirds(1)));
+
         levels.add(new GameLevel(
                 3500,
                 "background2.jpg",
-                new Position(50, 650),
+                new Position(50, 350),
                 new Position(1075, 70),
                 new Position(3300, 100),
                 createStaticPlatforms(2),
@@ -65,7 +66,7 @@ public class Game {
             platforms.add(new Platform(p, 30, 8, 1250, 600));
             platforms.add(new Platform(p, 30, 12, 1525, 725));
         } else if (levelNumber == 2) {
-            platforms.add(new Platform(p, 30, 4, 20, 750));
+            platforms.add(new Platform(p, 30, 4, 20, 425));
         }
 
         return platforms;
