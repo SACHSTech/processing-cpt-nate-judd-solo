@@ -108,7 +108,7 @@ public class Sketch extends PApplet {
       drawTitleText("PLAY", 700, 410, 180, 70, 200, 100);
       play(checkForClick(700, 410, 180, 70));
 
-      drawTitleText("Controls", 600, 400, 200, 40, 100, 200);
+      drawTitleText("Controls", 600, 400, 200, 40, 200, 100);
 
       // Control screen
     } else if (blnControls) {

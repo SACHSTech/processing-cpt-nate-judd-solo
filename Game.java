@@ -30,7 +30,7 @@ public class Game {
                 "background1.jpg",
                 new Position(50, 650),
                 new Position(1075, 70),
-                new Position(1800, 640),
+                new Position(1800, 625),
                 createStaticPlatforms(1),
                 createMovingPlatforms(1),
                 createBirds(1)));
@@ -38,9 +38,9 @@ public class Game {
         levels.add(new GameLevel(
                 3500,
                 "background2.jpg",
-                new Position(50, 350),
-                new Position(1075, 70),
-                new Position(3300, 100),
+                new Position(50, 335),
+                new Position(60, 690),
+                new Position(3300, 275),
                 createStaticPlatforms(2),
                 createMovingPlatforms(2),
                 createBirds(2)));
@@ -66,7 +66,18 @@ public class Game {
             platforms.add(new Platform(p, 30, 8, 1250, 600));
             platforms.add(new Platform(p, 30, 12, 1525, 725));
         } else if (levelNumber == 2) {
-            platforms.add(new Platform(p, 30, 4, 20, 425));
+            platforms.add(new Platform(p, 30, 8, 20, 425));
+            platforms.add(new Platform(p, 30, 4, 20, 750));
+            platforms.add(new Platform(p, 30, 3, 450, 315));
+            platforms.add(new Platform(p, 30, 7, 800, 500));
+            platforms.add(new Platform(p, 30, 3, 1250, 500));
+            platforms.add(new Platform(p, 30, 5, 1500, 425));
+            platforms.add(new Platform(p, 30, 6, 1850, 350));
+            platforms.add(new Platform(p, 30, 5, 2300, 350));
+            platforms.add(new Platform(p, 30, 4, 2500, 100));
+            platforms.add(new Platform(p, 30, 6, 2850, 710));
+            platforms.add(new Platform(p, 30, 10, 3100, 510));
+            platforms.add(new Platform(p, 30, 3, 3305, 375));
         }
 
         return platforms;
@@ -85,8 +96,10 @@ public class Game {
             platforms.add(new MovingPlatform(p, 30, 6, 2, p.width, 510));
             platforms.add(new MovingPlatform(p, 30, 6, 2, p.width + 600, 510));
         } else if (levelNumber == 2) {
-            platforms.add(new MovingPlatform(p, 30, 6, 2, p.width, 510));
-            platforms.add(new MovingPlatform(p, 30, 6, 2, p.width + 600, 510));
+            platforms.add(new MovingPlatform(p, 30, 4, 3, p.width, 600));
+            platforms.add(new MovingPlatform(p, 30, 4, 3, p.width + 600, 600));
+            platforms.add(new MovingPlatform(p, 30, 5, 2, p.width, 225));
+            platforms.add(new MovingPlatform(p, 30, 5, 2, p.width + 300, 150));
         }
 
         return platforms;
@@ -104,7 +117,8 @@ public class Game {
         if (levelNumber == 1) {
             // Level 1 has no birds
         } else if (levelNumber == 2) {
-            birds.add(new Bird(p, 100, 80, 1, 500, 100, false));
+            birds.add(new Bird(p, 90, 75, 3, 450, 0, false));
+            birds.add(new Bird(p, 90, 75, 2, 1250, 0, true));
         }
 
         return birds;
