@@ -102,7 +102,7 @@ public class Sketch extends PApplet {
       imgBackground = loadImage("titleScreen.jpg");
       drawBackground();
 
-      drawTitleText("PLAY", 700, 410, 180, 70, 255, 0);
+      drawTitleText("PLAY", 700, 410, 180, 70, 200, 100);
       play(checkForClick(700, 410, 180, 70));
 
       drawTitleText("How To Play", 575, 365, 270, 40, 100, 200);
@@ -138,12 +138,10 @@ public class Sketch extends PApplet {
       movingPlatformCollision(movingPlatforms);
       birdCollision(birds);
     } else {
-      intCurrentLevel = 0;
-
       imgBackground = loadImage("gameOver.jpg");
       drawBackground();
 
-      drawTitleText("Play Again?", 700, 350, 300, 50, 255, 0);
+      drawTitleText("Play Again?", 700, 350, 300, 50, 200, 100);
       playAgain(checkForClick(700, 350, 300, 50));
     }
   }
@@ -276,6 +274,9 @@ public class Sketch extends PApplet {
         && blnMouseClicked) {
       blnClick = true;
       blnMouseClicked = false;
+    } else if (blnMouseClicked
+        && !isInObject(mouseX, mouseX, mouseY, mouseY, rectX, rectX + rectW, fltRectY, fltRectY + intRectH)) {
+      blnMouseClicked = false;
     }
 
     return blnClick;
@@ -301,8 +302,9 @@ public class Sketch extends PApplet {
     if (play) {
       intCurrentLifeCount = intMaxLifeCount;
       intLostLifeCount = 0;
-      blnHasExit = true;
       blnStartGame = true;
+      intCurrentLevel = 0;
+      blnHasExit = true;
     }
   }
 
@@ -488,6 +490,7 @@ public class Sketch extends PApplet {
     if (!blnHasExit && blnHasKey && fltXMiddle < exitX2 && fltXMiddle > exitX1 && fltYPos < exitY2
         && fltYPos2 > exitY1 && blnExit) {
       blnHasExit = true;
+      resetLevel();
     } else {
       blnHasExit = false;
     }

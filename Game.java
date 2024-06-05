@@ -34,6 +34,15 @@ public class Game {
                 createStaticPlatforms(1),
                 createMovingPlatforms(1),
                 createBirds(1)));
+        levels.add(new GameLevel(
+                3500,
+                "background2.jpg",
+                new Position(50, 650),
+                new Position(1075, 70),
+                new Position(3300, 100),
+                createStaticPlatforms(2),
+                createMovingPlatforms(2),
+                createBirds(2)));
     }
 
     /**
@@ -55,6 +64,8 @@ public class Game {
             platforms.add(new Platform(p, 30, 6, 1000, 125));
             platforms.add(new Platform(p, 30, 8, 1250, 600));
             platforms.add(new Platform(p, 30, 12, 1525, 725));
+        } else if (levelNumber == 2) {
+            platforms.add(new Platform(p, 30, 4, 20, 750));
         }
 
         return platforms;
@@ -70,6 +81,9 @@ public class Game {
         ArrayList<MovingPlatform> platforms = new ArrayList<MovingPlatform>();
 
         if (levelNumber == 1) {
+            platforms.add(new MovingPlatform(p, 30, 6, 2, p.width, 510));
+            platforms.add(new MovingPlatform(p, 30, 6, 2, p.width + 600, 510));
+        } else if (levelNumber == 2) {
             platforms.add(new MovingPlatform(p, 30, 6, 2, p.width, 510));
             platforms.add(new MovingPlatform(p, 30, 6, 2, p.width + 600, 510));
         }
@@ -88,7 +102,8 @@ public class Game {
 
         if (levelNumber == 1) {
             // Level 1 has no birds
-         //   birds.add(new Bird(p, 100, 80, 1, 500, 100, false));
+        } else if (levelNumber == 2) {
+            birds.add(new Bird(p, 100, 80, 1, 500, 100, false));
         }
 
         return birds;
