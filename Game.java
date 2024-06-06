@@ -25,16 +25,18 @@ public class Game {
      * Initializes levels
      */
     public void initializeLevels() {
+        // Level 1
         levels.add(new GameLevel(
                 2000,
                 "background1.jpg",
                 new Position(50, 650),
                 new Position(1075, 70),
-                new Position(1800, 625),
+                new Position(1750, 625),
                 createStaticPlatforms(1),
                 createMovingPlatforms(1),
                 createBirds(1)));
 
+        // Level 2
         levels.add(new GameLevel(
                 3500,
                 "background2.jpg",
@@ -44,6 +46,39 @@ public class Game {
                 createStaticPlatforms(2),
                 createMovingPlatforms(2),
                 createBirds(2)));
+
+        // Level 3
+        levels.add(new GameLevel(
+                3000,
+                "background3.jpg",
+                new Position(50, 650),
+                new Position(200, 690),
+                new Position(2800, 650),
+                createStaticPlatforms(3),
+                createMovingPlatforms(3),
+                createBirds(3)));
+
+        // Level 4
+        levels.add(new GameLevel(
+                4000,
+                "background4.jpg",
+                new Position(50, 650),
+                new Position(200, 690),
+                new Position(3800, 650),
+                createStaticPlatforms(4),
+                createMovingPlatforms(4),
+                createBirds(4)));
+
+        // Level 5
+        levels.add(new GameLevel(
+                2500,
+                "background5.jpg",
+                new Position(50, 650),
+                new Position(200, 690),
+                new Position(100, 100),
+                createStaticPlatforms(5),
+                createMovingPlatforms(5),
+                createBirds(5)));
     }
 
     /**
@@ -64,7 +99,7 @@ public class Game {
             platforms.add(new Platform(p, 30, 4, 850, 200));
             platforms.add(new Platform(p, 30, 6, 1000, 125));
             platforms.add(new Platform(p, 30, 8, 1250, 600));
-            platforms.add(new Platform(p, 30, 12, 1525, 725));
+            platforms.add(new Platform(p, 30, 11, 1525, 725));
         } else if (levelNumber == 2) {
             platforms.add(new Platform(p, 30, 8, 20, 425));
             platforms.add(new Platform(p, 30, 4, 20, 750));
@@ -78,6 +113,12 @@ public class Game {
             platforms.add(new Platform(p, 30, 6, 2850, 710));
             platforms.add(new Platform(p, 30, 10, 3100, 510));
             platforms.add(new Platform(p, 30, 3, 3305, 375));
+        } else if (levelNumber == 3) {
+            platforms.add(new Platform(p, 30, 99, 20, 750));
+        } else if (levelNumber == 4) {
+            platforms.add(new Platform(p, 30, 130, 20, 750));
+        } else if (levelNumber == 5) {
+            platforms.add(new Platform(p, 30, 82, 20, 750));
         }
 
         return platforms;
@@ -100,6 +141,12 @@ public class Game {
             platforms.add(new MovingPlatform(p, 30, 4, 3, p.width + 600, 600));
             platforms.add(new MovingPlatform(p, 30, 5, 2, p.width, 225));
             platforms.add(new MovingPlatform(p, 30, 5, 2, p.width + 300, 150));
+        } else if (levelNumber == 3) {
+            platforms.add(new MovingPlatform(p, 30, 5, 2, 20, 370));
+        } else if (levelNumber == 4) {
+            platforms.add(new MovingPlatform(p, 30, 5, 2, 20, 370));
+        } else if (levelNumber == 5) {
+            platforms.add(new MovingPlatform(p, 30, 5, 2, 20, 370));
         }
 
         return platforms;
@@ -119,6 +166,12 @@ public class Game {
         } else if (levelNumber == 2) {
             birds.add(new Bird(p, 90, 75, 3, 450, 0, false));
             birds.add(new Bird(p, 90, 75, 2, 1250, 0, true));
+        } else if (levelNumber == 3) {
+            birds.add(new Bird(p, 90, 75, 3, 450, 0, false));
+        } else if (levelNumber == 4) {
+            birds.add(new Bird(p, 90, 75, 3, 450, 0, false));
+        } else if (levelNumber == 5) {
+            birds.add(new Bird(p, 90, 75, 3, 450, 0, false));
         }
 
         return birds;

@@ -795,7 +795,7 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Stops the character from exiting the screen from the top and left
+   * Stops the character from exiting the screen from the top and sides
    */
   public void screenCollision() {
     if (fltYPos < 0) {
@@ -806,6 +806,11 @@ public class Sketch extends PApplet {
     if (fltXPos < 0) {
       fltXSpeed = 0;
       fltXPos = 0;
+    }
+
+    if (fltXPos > width - intWidth) {
+      fltXSpeed = 0;
+      fltXPos = width - intWidth;
     }
   }
 
