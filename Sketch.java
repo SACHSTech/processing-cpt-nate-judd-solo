@@ -928,10 +928,10 @@ public class Sketch extends PApplet {
     if (keyCode == RIGHT) {
       blnRight = true;
     }
-    if (key == 'z' && blnCrouch == false) {
+    if (key == 'z' || key == 'Z' && blnCrouch == false) {
       blnSprint = true;
     }
-    if (key == 'x' && fltYSpeed == 0) {
+    if (key == 'x' || key == 'X' && fltYSpeed == 0) {
       blnCrouch = true;
       blnHasCrouched = true;
     }
@@ -953,10 +953,10 @@ public class Sketch extends PApplet {
     if (keyCode == RIGHT) {
       blnRight = false;
     }
-    if (key == 'z') {
+    if (key == 'z' || key == 'Z') {
       blnSprint = false;
     }
-    if (key == 'x') {
+    if (key == 'x' || key == 'X') {
       blnCrouch = false;
     }
     if (key == ' ') {
