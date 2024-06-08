@@ -150,6 +150,8 @@ public class Sketch extends PApplet {
 
       // Game over screen
     } else {
+      stopMovement();
+
       imgBackground = loadImage("gameOver.jpg");
       drawBackground();
 
@@ -177,6 +179,17 @@ public class Sketch extends PApplet {
 
     imgCrouch = imgCrouchR;
     imgMC = imgRight;
+  }
+
+  /**
+   * Stops character movement
+   */
+  public void stopMovement() {
+    blnRight = false;
+    blnLeft  = false;
+    blnJump  = false;
+    blnCrouch = false;
+    blnSprint = false;
   }
 
   /**
