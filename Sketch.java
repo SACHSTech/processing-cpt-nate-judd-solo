@@ -11,7 +11,7 @@ public class Sketch extends PApplet {
   // Game
   Game game;
   int intLevelWidth;
-  int intCurrentLevel = 0, intLevelReset = 0;
+  int intCurrentLevel = 0, intLevelReset = 4;
   boolean blnStartGame = false, blnControls = false;;
 
   // Background
@@ -186,8 +186,8 @@ public class Sketch extends PApplet {
    */
   public void stopMovement() {
     blnRight = false;
-    blnLeft  = false;
-    blnJump  = false;
+    blnLeft = false;
+    blnJump = false;
     blnCrouch = false;
     blnSprint = false;
   }
@@ -330,6 +330,8 @@ public class Sketch extends PApplet {
       blnStartGame = true;
       intCurrentLevel = intLevelReset;
       blnHasExit = true;
+      imgExit = loadImage("exit.png");
+      imgExit.resize(intExitSize, intExitSize);
     }
   }
 
@@ -521,9 +523,6 @@ public class Sketch extends PApplet {
     if (intCurrentLevel == 5) {
       imgExit = loadImage("exit2.png");
       imgExit.resize(150, 150);
-    } else if (intCurrentLevel == 6) {
-      imgExit = loadImage("exit3.png");
-      imgExit.resize(200, 50);
     }
     image(imgExit, exitPosition.getPosX(), exitPosition.getPosY());
   }
