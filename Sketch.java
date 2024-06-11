@@ -11,7 +11,7 @@ public class Sketch extends PApplet {
   // Game
   Game game;
   int intLevelWidth;
-  int intCurrentLevel = 0, intLevelReset = 4;
+  int intCurrentLevel = 0, intLevelReset = 0;
   boolean blnStartGame = false, blnControls = false, blnWin = false;
 
   // Background
@@ -64,6 +64,11 @@ public class Sketch extends PApplet {
   // Mouse
   boolean blnMouseClicked = false;
 
+  // Time
+  int intTime = 0;
+  int intTotalTime = 0;
+  boolean blnStartTime = false;
+
   /**
    * Initializes the size of the canvas.
    */
@@ -75,6 +80,8 @@ public class Sketch extends PApplet {
    * Sets up the initial environment.
    */
   public void setup() {
+    frameRate = 60;
+
     game = new Game(this);
 
     setupCharacterImages();
@@ -149,12 +156,18 @@ public class Sketch extends PApplet {
       movingPlatformCollision(movingPlatforms);
       birdCollision(birds);
 
+      getTime();
+      drawTime();
+
       // Win screen
     } else if (blnWin) {
       stopMovement();
 
       imgBackground = loadImage("winScreen.jpg");
       drawBackground();
+
+      drawTitleText("Your time is " + totalMinutes(intTime) + " minutes and " + totalSeconds(intTime) + " seconds!",
+          400, 200, 600, 30, 200, 100);
 
       drawTitleText("Play Again?", 700, 350, 300, 50, 200, 100);
       playAgain(checkForClick(700, 350, 300, 50));
@@ -193,6 +206,43 @@ public class Sketch extends PApplet {
   }
 
   /**
+   * Calculates the level time
+   */
+  public void getTime() {
+    if (blnStartTime) {
+      intTime += 1;
+    }
+  }
+
+  /**
+   * Prints the time to the screen
+   */
+  public void drawTime() {
+    textSize(20);
+    textAlign(LEFT, TOP);
+    fill(255);
+    text("Time: " + totalMinutes(intTime) + ":" + totalSeconds(intTime), 5, 5);
+  }
+
+  /**
+   * Gets the total minutes
+   * 
+   * @return the total minutes
+   */
+  public int totalMinutes(int time) {
+    return (time / 60) / 60;
+  }
+
+  /**
+   * Gets the total seconds
+   * 
+   * @return the total seconds
+   */
+  public int totalSeconds(int time) {
+    return (time / 60) % 60;
+  }
+
+  /**
    * Stops character movement
    */
   public void stopMovement() {
@@ -201,6 +251,7 @@ public class Sketch extends PApplet {
     blnJump = false;
     blnCrouch = false;
     blnSprint = false;
+    blnStartTime = false;
   }
 
   /**
@@ -352,6 +403,7 @@ public class Sketch extends PApplet {
     if (play) {
       intCurrentLifeCount = intMaxLifeCount;
       intLostLifeCount = 0;
+      intTime = 0;
       blnStartGame = true;
       intCurrentLevel = intLevelReset;
       blnHasExit = true;
@@ -638,6 +690,7 @@ public class Sketch extends PApplet {
       fltXSpeed = 0;
 
     } else if (blnRight) {
+      blnStartTime = true;
       updateCharacterImage();
 
       // Accelerate
@@ -658,6 +711,7 @@ public class Sketch extends PApplet {
       }
 
     } else if (blnLeft) {
+      blnStartTime = true;
       updateCharacterImage();
 
       // Accelerate
@@ -701,6 +755,7 @@ public class Sketch extends PApplet {
    */
   public void verticalMovement() {
     if (blnJump) {
+      blnStartTime = true;
       if (fltYPos >= fltPreJumpPos) {
         fltYSpeed = fltJumpHeight;
         blnJump = false;
