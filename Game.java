@@ -148,7 +148,7 @@ public class Game {
             platforms.add(new Platform(p, 30, 3, 2650, 440));
             platforms.add(new Platform(p, 30, 3, 3650, 440));
 
-         //   platforms.add(new Platform(p, 30, 170, 20, 750));
+            platforms.add(new Platform(p, 30, 170, 20, 750));
         }
 
         return platforms;

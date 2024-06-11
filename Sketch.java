@@ -12,7 +12,7 @@ public class Sketch extends PApplet {
   Game game;
   int intLevelWidth;
   int intCurrentLevel = 0, intLevelReset = 4;
-  boolean blnStartGame = false, blnControls = false;;
+  boolean blnStartGame = false, blnControls = false, blnWin = false;
 
   // Background
   PImage imgBackground;
@@ -118,7 +118,8 @@ public class Sketch extends PApplet {
       backButton();
 
       // Game
-    } else if (blnStartGame && intCurrentLifeCount > 0) {
+    } else if (blnStartGame && intCurrentLifeCount > 0 && !blnWin) {
+      blnWin = checkForWin();
       setupLevel();
 
       drawBackground();
@@ -147,6 +148,16 @@ public class Sketch extends PApplet {
       staticPlatformCollision(platforms);
       movingPlatformCollision(movingPlatforms);
       birdCollision(birds);
+
+      // Win screen
+    } else if (blnWin) {
+      stopMovement();
+
+      imgBackground = loadImage("winScreen.jpg");
+      drawBackground();
+
+      drawTitleText("Play Again?", 700, 350, 300, 50, 200, 100);
+      playAgain(checkForClick(700, 350, 300, 50));
 
       // Game over screen
     } else {
@@ -190,6 +201,19 @@ public class Sketch extends PApplet {
     blnJump = false;
     blnCrouch = false;
     blnSprint = false;
+  }
+
+  /**
+   * Checks if the character has completed the fifth level
+   * 
+   * @return if the chracter has completed the fifth level or not
+   */
+  public boolean checkForWin() {
+    if (intCurrentLevel == 5 && blnExit) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -315,6 +339,7 @@ public class Sketch extends PApplet {
   public void playAgain(boolean playAgain) {
     if (playAgain) {
       blnStartGame = false;
+      blnWin = false;
     }
   }
 
@@ -800,10 +825,10 @@ public class Sketch extends PApplet {
     // Iterates through each bird
     for (int i = 0; i < birds.size(); i++) {
       // Initializes attribtues of the birds
-      float fltBirdX1 = birds.get(i).getPosX();
-      float fltBirdY1 = birds.get(i).getPosY();
-      float fltBirdX2 = fltBirdX1 + birds.get(i).getBirdWidth();
-      float fltBirdY2 = fltBirdY1 + birds.get(i).getBirdHeight();
+      float fltBirdX1 = birds.get(i).getPosX() + 10;
+      float fltBirdY1 = birds.get(i).getPosY() + 10;
+      float fltBirdX2 = fltBirdX1 + birds.get(i).getBirdWidth() - 10;
+      float fltBirdY2 = fltBirdY1 + birds.get(i).getBirdHeight() - 10;
 
       if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltBirdX1, fltBirdX2, fltBirdY1, fltBirdY2)) {
         fltYPos = height + 201;
