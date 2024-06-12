@@ -10,10 +10,11 @@ import processing.core.PImage;
 public class Bird extends Position {
     // Instance variables
     private PApplet p; // Reference to the PApplet instance
-    private PImage imgBird;
+    private PImage imgBird, imgBird1, imgBird2;
     private int intWidth;
     private int intHeight;
     private int intSpeed;
+    private int intBirdCount = 0;
 
     /**
      * Constructor: Initializes the bird's position, size, and image.
@@ -23,21 +24,19 @@ public class Bird extends Position {
      * @param height  bird height
      * @param xPos    bird x position
      * @param yPos    bird y position
-     * @param right   set to true for the bird to face right and false to face left
      */
-    public Bird(PApplet papplet, int width, int height, int speed, float xPos, float yPos, boolean right) {
+    public Bird(PApplet papplet, int width, int height, int speed, float xPos, float yPos) {
         super(xPos, yPos);
         p = papplet;
         intWidth = width;
         intHeight = height;
         intSpeed = speed;
 
-        if (right) {
-            imgBird = p.loadImage("birdRight.png");
-        } else if (!right) {
-            imgBird = p.loadImage("birdLeft.png");
-        }
-        imgBird.resize(intWidth, intHeight);
+        imgBird1 = p.loadImage("bird1.png");
+        imgBird1.resize(intWidth, intHeight);
+        imgBird2 = p.loadImage("bird2.png");
+        imgBird2.resize(intWidth, intHeight);
+        imgBird = imgBird1;
     }
 
     /**
@@ -96,6 +95,16 @@ public class Bird extends Position {
      * Prints the bird to the screen
      */
     public void draw() {
+        intBirdCount += 1;
+
+        if (intBirdCount <= 30) {
+            imgBird = imgBird1;
+        } else if (intBirdCount > 30 && intBirdCount <= 60) {
+            imgBird = imgBird2;
+        } else {
+            intBirdCount = 0;
+        }
+
         p.image(imgBird, getPosX(), getPosY());
     }
 }

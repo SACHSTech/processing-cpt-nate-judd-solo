@@ -20,7 +20,7 @@ public class Sketch extends PApplet {
   float fltXPosBG = 0, fltYPosBG = 0, fltScrollX = intScreenW / 2 - 60;
 
   // Character
-  PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgRight, imgLeft, imgKeyR, imgKeyL;
+  PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgRight, imgLeft, imgKeyR, imgKeyL, imgCaught;
   PImage imgJump, imgJumpR, imgJumpL;
   PImage imgR1, imgR2, imgL1, imgL2;
   // Sizes
@@ -227,6 +227,8 @@ public class Sketch extends PApplet {
     imgL1.resize(intWidth, intHeight);
     imgL2 = loadImage("Left2.png");
     imgL2.resize(intWidth, intHeight);
+    imgCaught = loadImage("caught.png");
+    imgCaught.resize(intWidth, intHeight);
 
     imgJump = imgJumpR;
     imgCrouch = imgCrouchR;
@@ -701,61 +703,66 @@ public class Sketch extends PApplet {
    * Allows character image to change direction
    */
   public void updateCharacterImage() {
-    if (blnChangeDirect && !blnLeft && !blnRight && !blnJump) {
-      if (blnHasKey) {
-        imgMC = imgKeyL;
-      } else {
-        imgMC = imgLeft;
-      }
-    } else if (!blnChangeDirect && !blnLeft && !blnRight && !blnJump) {
-      if (blnHasKey) {
-        imgMC = imgKeyR;
-      } else {
-        imgMC = imgRight;
-      }
-    }
-
-    if (fltYPos < fltPreJumpPos) {
-      if (blnRight) {
-        imgJump = imgJumpR;
-      } else if (blnLeft) {
-        imgJump = imgJumpL;
-      } else if (!blnChangeDirect && !blnRight && !blnLeft) {
-        imgJump = imgJumpR;
-      } else if (blnChangeDirect && !blnRight && !blnLeft) {
-        imgJump = imgJumpL;
+    if (blnCaught) {
+      blnCrouch = false;
+      imgMC = imgCaught;
+    } else {
+      if (blnChangeDirect && !blnLeft && !blnRight && !blnJump) {
+        if (blnHasKey) {
+          imgMC = imgKeyL;
+        } else {
+          imgMC = imgLeft;
+        }
+      } else if (!blnChangeDirect && !blnLeft && !blnRight && !blnJump) {
+        if (blnHasKey) {
+          imgMC = imgKeyR;
+        } else {
+          imgMC = imgRight;
+        }
       }
 
-      imgMC = imgJump;
-    }
+      if (fltYPos < fltPreJumpPos) {
+        if (blnRight) {
+          imgJump = imgJumpR;
+        } else if (blnLeft) {
+          imgJump = imgJumpL;
+        } else if (!blnChangeDirect && !blnRight && !blnLeft) {
+          imgJump = imgJumpR;
+        } else if (blnChangeDirect && !blnRight && !blnLeft) {
+          imgJump = imgJumpL;
+        }
 
-    if (blnRight && fltYPos > fltPreJumpPos && fltYSpeed < 1) {
-      if (blnSprint) {
-        intRunCount += 2;
-      } else {
-        intRunCount += 1;
+        imgMC = imgJump;
       }
 
-      if (intRunCount <= 15) {
-        imgMC = imgR1;
-      } else if (intRunCount > 15 && intRunCount <= 30) {
-        imgMC = imgR2;
-      } else {
-        intRunCount = 0;
-      }
-    } else if (blnLeft && fltYPos > fltPreJumpPos && fltYSpeed < 1) {
-      if (blnSprint) {
-        intRunCount += 2;
-      } else {
-        intRunCount += 1;
-      }
+      if (blnRight && fltYPos > fltPreJumpPos && fltYSpeed < 1) {
+        if (blnSprint) {
+          intRunCount += 2;
+        } else {
+          intRunCount += 1;
+        }
 
-      if (intRunCount <= 15) {
-        imgMC = imgL1;
-      } else if (intRunCount > 15 && intRunCount <= 30) {
-        imgMC = imgL2;
-      } else {
-        intRunCount = 0;
+        if (intRunCount <= 15) {
+          imgMC = imgR1;
+        } else if (intRunCount > 15 && intRunCount <= 30) {
+          imgMC = imgR2;
+        } else {
+          intRunCount = 0;
+        }
+      } else if (blnLeft && fltYPos > fltPreJumpPos && fltYSpeed < 1) {
+        if (blnSprint) {
+          intRunCount += 2;
+        } else {
+          intRunCount += 1;
+        }
+
+        if (intRunCount <= 15) {
+          imgMC = imgL1;
+        } else if (intRunCount > 15 && intRunCount <= 30) {
+          imgMC = imgL2;
+        } else {
+          intRunCount = 0;
+        }
       }
     }
   }

@@ -196,32 +196,32 @@ public class Game {
         if (levelNumber == 1) {
             // Level 1 has no birds
         } else if (levelNumber == 2) {
-            birds.add(new Bird(p, 90, 75, 3, 1185, p.height, true));
-            birds.add(new Bird(p, 90, 75, 3, 1455, 0, true));
+            birds.add(new Bird(p, 90, 75, 3, 1185, p.height));
+            birds.add(new Bird(p, 90, 75, 3, 1455, 0));
         } else if (levelNumber == 3) {
-            birds.add(new Bird(p, 90, 75, 3, 450, 0, false));
-            birds.add(new Bird(p, 90, 75, 2, 1250, 0, true));
+            birds.add(new Bird(p, 90, 75, 3, 450, 0));
+            birds.add(new Bird(p, 90, 75, 2, 1250, 0));
         } else if (levelNumber == 4) {
-            birds.add(new Bird(p, 90, 75, 2, 500, 0, false));
-            birds.add(new Bird(p, 90, 75, 2, 900, 100, true));
-            birds.add(new Bird(p, 90, 75, 3, 1300, 300, false));
-            birds.add(new Bird(p, 90, 75, 3, 1785, 700, false));
-            birds.add(new Bird(p, 90, 75, 4, 2100, 200, true));
-            birds.add(new Bird(p, 90, 75, 3, 2400, 400, false));
-            birds.add(new Bird(p, 90, 75, 3, 2900, 200, false));
-            birds.add(new Bird(p, 90, 75, 4, 3345, 0, true));
-            birds.add(new Bird(p, 90, 75, 4, 3575, 400, false));
-            birds.add(new Bird(p, 90, 75, 4, 3675, 600, true));
+            birds.add(new Bird(p, 90, 75, 2, 500, 0));
+            birds.add(new Bird(p, 90, 75, 2, 900, 100));
+            birds.add(new Bird(p, 90, 75, 3, 1300, 300));
+            birds.add(new Bird(p, 90, 75, 3, 1785, 700));
+            birds.add(new Bird(p, 90, 75, 4, 2100, 200));
+            birds.add(new Bird(p, 90, 75, 3, 2400, 400));
+            birds.add(new Bird(p, 90, 75, 3, 2900, 200));
+            birds.add(new Bird(p, 90, 75, 4, 3345, 0));
+            birds.add(new Bird(p, 90, 75, 4, 3575, 400));
+            birds.add(new Bird(p, 90, 75, 4, 3675, 600));
         } else if (levelNumber == 5) {
-            birds.add(new Bird(p, 90, 75, 3, 500, 0, false));
-            birds.add(new Bird(p, 90, 75, 3, 1000, 800, true));
-            birds.add(new Bird(p, 90, 75, 3, 1500, 0, false));
-            birds.add(new Bird(p, 90, 75, 3, 2000, 800, true));
-            birds.add(new Bird(p, 90, 75, 3, 2500, 0, false));
-            birds.add(new Bird(p, 90, 75, 3, 3000, 800, true));
-            birds.add(new Bird(p, 90, 75, 3, 3500, 0, false));
-            birds.add(new Bird(p, 90, 75, 3, 4000, 800, true));
-            birds.add(new Bird(p, 110, 85, 5, 4630, 0, false));
+            birds.add(new Bird(p, 90, 75, 3, 500, 0));
+            birds.add(new Bird(p, 90, 75, 3, 1000, 800));
+            birds.add(new Bird(p, 90, 75, 3, 1500, 0));
+            birds.add(new Bird(p, 90, 75, 3, 2000, 800));
+            birds.add(new Bird(p, 90, 75, 3, 2500, 0));
+            birds.add(new Bird(p, 90, 75, 3, 3000, 800));
+            birds.add(new Bird(p, 90, 75, 3, 3500, 0));
+            birds.add(new Bird(p, 90, 75, 3, 4000, 800));
+            birds.add(new Bird(p, 110, 85, 5, 4630, 0));
         }
 
         return birds;
