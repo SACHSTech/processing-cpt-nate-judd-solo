@@ -98,7 +98,7 @@ public class Game {
             platforms.add(new Platform(p, 30, 6, 775, 400));
             platforms.add(new Platform(p, 30, 4, 850, 200));
             platforms.add(new Platform(p, 30, 6, 1000, 125));
-            platforms.add(new Platform(p, 30, 8, 1250, 600));
+            platforms.add(new Platform(p, 30, 8, 1250, 650));
             platforms.add(new Platform(p, 30, 11, 1525, 725));
         } else if (levelNumber == 2) {
             platforms.add(new Platform(p, 30, 4, 20, 550));

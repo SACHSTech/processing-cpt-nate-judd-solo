@@ -433,7 +433,7 @@ public class Sketch extends PApplet {
    * Checks if the player clicks the back button then returns to title screen
    */
   public void backButton() {
-    drawTitleText("Back", 750, 435, 130, 40, 100, 200);
+    drawTitleText("Back", 750, 435, 130, 40, 200, 100);
 
     if (blnMouseClicked && mouseX < 565 && mouseX > 435 && mouseY < 780 && mouseY > 730) {
       blnMouseClicked = false;
