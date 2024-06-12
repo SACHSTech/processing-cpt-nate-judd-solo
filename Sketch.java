@@ -63,6 +63,7 @@ public class Sketch extends PApplet {
 
   // Mouse
   boolean blnMouseClicked = false;
+  int intJumpCount = 0;
 
   // Time
   int intTime = 0;
@@ -167,7 +168,13 @@ public class Sketch extends PApplet {
       drawBackground();
 
       drawTitleText("Your time is " + totalMinutes(intTime) + " minutes and " + totalSeconds(intTime) + " seconds!",
-          400, 200, 600, 30, 200, 100);
+          400, 180, 640, 30, 200, 100);
+
+      drawTitleText("You finished with " + intCurrentLifeCount + " lives remaining!",
+          465, 220, 560, 30, 200, 100);
+
+      drawTitleText("You jumped " + intJumpCount + " times!",
+          530, 260, 480, 30, 200, 100);
 
       drawTitleText("Play Again?", 700, 350, 300, 50, 200, 100);
       playAgain(checkForClick(700, 350, 300, 50));
@@ -404,6 +411,7 @@ public class Sketch extends PApplet {
       intCurrentLifeCount = intMaxLifeCount;
       intLostLifeCount = 0;
       intTime = 0;
+      intJumpCount = 0;
       blnStartGame = true;
       intCurrentLevel = intLevelReset;
       blnHasExit = true;
@@ -757,6 +765,7 @@ public class Sketch extends PApplet {
     if (blnJump) {
       blnStartTime = true;
       if (fltYPos >= fltPreJumpPos) {
+        intJumpCount += 1;
         fltYSpeed = fltJumpHeight;
         blnJump = false;
       }
