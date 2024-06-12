@@ -21,6 +21,7 @@ public class Sketch extends PApplet {
 
   // Character
   PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgRight, imgLeft, imgKeyR, imgKeyL;
+  PImage imgJump, imgJumpR, imgJumpL;
   // Sizes
   int intWidth = 60, intHeight = 70, intCrouchHeight = 45, intHeightChange = intHeight - intCrouchHeight;
   // Positions
@@ -30,7 +31,7 @@ public class Sketch extends PApplet {
   float fltAccel = 0.3f, fltDecel = 0.2f, fltGravity = 0.3f;
   // Movement
   boolean blnJump = false, blnLeft = false, blnRight = false, blnSprint = false, blnCrouch = false;
-  boolean blnHasCrouched = false;
+  boolean blnHasCrouched = false, blnChangeDirect = false;
 
   // Platforms
   ArrayList<Platform> platforms;
@@ -141,6 +142,8 @@ public class Sketch extends PApplet {
       horizontalMovement();
       verticalMovement();
 
+      updateCharacterImage();
+
       drawPlatforms(
           platforms,
           movingPlatforms);
@@ -162,6 +165,8 @@ public class Sketch extends PApplet {
 
       getTime();
       drawTime();
+
+      System.out.println(blnChangeDirect);
 
       // Win screen
     } else if (blnWin) {
@@ -210,7 +215,12 @@ public class Sketch extends PApplet {
     imgKeyR.resize(intWidth, intHeight);
     imgKeyL = loadImage("characterkeyL.png");
     imgKeyL.resize(intWidth, intHeight);
+    imgJumpR = loadImage("RightJump.png");
+    imgJumpR.resize(intWidth, intHeight);
+    imgJumpL = loadImage("LeftJump.png");
+    imgJumpL.resize(intWidth, intHeight);
 
+    imgJump = imgJumpR;
     imgCrouch = imgCrouchR;
     imgMC = imgRight;
   }
@@ -683,7 +693,15 @@ public class Sketch extends PApplet {
    * Allows character image to change direction
    */
   public void updateCharacterImage() {
-    if (blnRight) {
+    if (blnChangeDirect && !blnLeft && !blnRight && !blnJump) {
+      if (blnHasKey) {
+        imgMC = imgKeyL;
+      } else {
+        imgMC = imgLeft;
+      }
+
+      imgCrouch = imgCrouchL;
+    } else if (!blnChangeDirect && !blnLeft && !blnRight && !blnJump) {
       if (blnHasKey) {
         imgMC = imgKeyR;
       } else {
@@ -693,14 +711,24 @@ public class Sketch extends PApplet {
       imgCrouch = imgCrouchR;
     }
 
-    if (blnLeft) {
-      if (blnHasKey) {
-        imgMC = imgKeyL;
-      } else {
-        imgMC = imgLeft;
+    if (fltYPos < fltPreJumpPos) {
+      if (blnRight) {
+        imgJump = imgJumpR;
+      } else if (blnLeft) {
+        imgJump = imgJumpL;
+      } else if (!blnChangeDirect && !blnRight && !blnLeft) {
+        imgJump = imgJumpR;
+      } else if (blnChangeDirect && !blnRight && !blnLeft) {
+        imgJump = imgJumpL;
       }
 
-      imgCrouch = imgCrouchL;
+      imgMC = imgJump;
+    }
+
+    if (blnRight && fltYPos > fltPreJumpPos) {
+      imgMC = imgRight;
+    } else if (blnLeft && fltYPos > fltPreJumpPos) {
+      imgMC = imgLeft;
     }
   }
 
@@ -712,8 +740,8 @@ public class Sketch extends PApplet {
       fltXSpeed = 0;
 
     } else if (blnRight) {
+      blnChangeDirect = false;
       blnStartTime = true;
-      updateCharacterImage();
 
       // Accelerate
       fltXSpeed += fltAccel;
@@ -733,8 +761,8 @@ public class Sketch extends PApplet {
       }
 
     } else if (blnLeft) {
+      blnChangeDirect = true;
       blnStartTime = true;
-      updateCharacterImage();
 
       // Accelerate
       fltXSpeed -= fltAccel;
@@ -778,6 +806,7 @@ public class Sketch extends PApplet {
   public void verticalMovement() {
     if (blnJump) {
       blnStartTime = true;
+
       if (fltYPos >= fltPreJumpPos) {
         intJumpCount += 1;
         fltYSpeed = fltJumpHeight;
@@ -827,6 +856,7 @@ public class Sketch extends PApplet {
         if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
           fltYSpeed = resetVerticalSpeed(fltYSpeed);
           fltYPos = setPosition(fltYPos, fltPlatY1);
+          blnJump = false;
           fltPreJumpPos = fltYPos;
         } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2,
             fltYSpeed)) {
@@ -872,6 +902,7 @@ public class Sketch extends PApplet {
         if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
           fltYSpeed = resetVerticalSpeed(fltYSpeed);
           fltYPos = setPosition(fltYPos, fltPlatY1);
+          blnJump = false;
           fltPreJumpPos = fltYPos;
           fltXPos -= fltPlatS;
         } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2,
