@@ -41,6 +41,7 @@ public class Sketch extends PApplet {
   // Bird
   ArrayList<Bird> birds;
   ArrayList<Float> birdPositions;
+  boolean blnCaught = false;
 
   // Lives
   PImage imgLives, imgLostLives;
@@ -128,6 +129,7 @@ public class Sketch extends PApplet {
       // Game
     } else if (blnStartGame && intCurrentLifeCount > 0 && !blnWin) {
       blnWin = checkForWin();
+
       setupLevel();
 
       drawBackground();
@@ -139,10 +141,9 @@ public class Sketch extends PApplet {
       horizontalMovement();
       verticalMovement();
 
-      drawObjects(
+      drawPlatforms(
           platforms,
-          movingPlatforms,
-          birds);
+          movingPlatforms);
 
       drawKey();
       checkKey(keyPosition);
@@ -151,6 +152,8 @@ public class Sketch extends PApplet {
       checkExit(exitPosition);
 
       drawCharacter();
+
+      drawBirds(birds);
 
       screenCollision();
       staticPlatformCollision(platforms);
@@ -444,10 +447,12 @@ public class Sketch extends PApplet {
   }
 
   /**
-   * Draws platforms and birds
+   * Draws platforms
+   * 
+   * @param platforms       array list of static platforms
+   * @param movingPlatforms array list of moving platforms
    */
-  public void drawObjects(ArrayList<Platform> platforms, ArrayList<MovingPlatform> movingPlatforms,
-      ArrayList<Bird> birds) {
+  public void drawPlatforms(ArrayList<Platform> platforms, ArrayList<MovingPlatform> movingPlatforms) {
     for (int i = 0; i < platforms.size(); i++) {
       platforms.get(i).draw();
     }
@@ -456,9 +461,16 @@ public class Sketch extends PApplet {
       movingPlatforms.get(i).platformShift(movingPlatforms);
       movingPlatforms.get(i).draw();
     }
+  }
 
+  /**
+   * Draws birds
+   * 
+   * @param birds array list of birds
+   */
+  public void drawBirds(ArrayList<Bird> birds) {
     for (int i = 0; i < birds.size(); i++) {
-      birds.get(i).flyingBird(birds);
+      birds.get(i).flyingBird(birds, blnCaught);
       birds.get(i).draw();
     }
   }
@@ -522,6 +534,8 @@ public class Sketch extends PApplet {
   public int updateLifeCount() {
     if (fltYPos > height + 200) {
       fltYSpeed = 0;
+
+      blnCaught = false;
 
       resetLevel();
 
@@ -809,25 +823,27 @@ public class Sketch extends PApplet {
       float fltPlatX2 = fltPlatX1 + intBlockSize * fltPlatL;
       float fltPlatY2 = fltPlatY1 + intBlockSize;
 
-      if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
-        fltYSpeed = resetVerticalSpeed(fltYSpeed);
-        fltYPos = setPosition(fltYPos, fltPlatY1);
-        fltPreJumpPos = fltYPos;
-      } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2,
-          fltYSpeed)) {
-        fltYSpeed = 0;
-        fltYPos = setPosition(fltYPos, fltPlatY1);
-      } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2 - fltPlatL / 2, fltPlatY1,
-          fltPlatY2)) {
-        fltXSpeed = 0;
-        fltXPos = fltPlatX1 - intWidth;
-        blnSprint = false;
-        blnRight = false;
-      } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
-        fltXSpeed = 0;
-        fltXPos = fltPlatX2;
-        blnSprint = false;
-        blnLeft = false;
+      if (!blnCaught) {
+        if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
+          fltYSpeed = resetVerticalSpeed(fltYSpeed);
+          fltYPos = setPosition(fltYPos, fltPlatY1);
+          fltPreJumpPos = fltYPos;
+        } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2,
+            fltYSpeed)) {
+          fltYSpeed = 0;
+          fltYPos = setPosition(fltYPos, fltPlatY1);
+        } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2 - fltPlatL / 2, fltPlatY1,
+            fltPlatY2)) {
+          fltXSpeed = 0;
+          fltXPos = fltPlatX1 - intWidth;
+          blnSprint = false;
+          blnRight = false;
+        } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
+          fltXSpeed = 0;
+          fltXPos = fltPlatX2;
+          blnSprint = false;
+          blnLeft = false;
+        }
       }
     }
   }
@@ -852,26 +868,28 @@ public class Sketch extends PApplet {
       float fltPlatX2 = fltPlatX1 + intBlockSize * fltPlatL;
       float fltPlatY2 = fltPlatY1 + intBlockSize;
 
-      if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
-        fltYSpeed = resetVerticalSpeed(fltYSpeed);
-        fltYPos = setPosition(fltYPos, fltPlatY1);
-        fltPreJumpPos = fltYPos;
-        fltXPos -= fltPlatS;
-      } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2,
-          fltYSpeed)) {
-        fltYSpeed = 0;
-        fltYPos = setPosition(fltYPos, fltPlatY1);
-      } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2 - fltPlatL / 2, fltPlatY1,
-          fltPlatY2)) {
-        fltXSpeed = 0;
-        fltXPos -= fltPlatS;
-        blnSprint = false;
-        blnRight = false;
-      } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
-        fltXSpeed = 0;
-        fltXPos = fltPlatX2;
-        blnSprint = false;
-        blnLeft = false;
+      if (!blnCaught) {
+        if (isOnPlatform(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1)) {
+          fltYSpeed = resetVerticalSpeed(fltYSpeed);
+          fltYPos = setPosition(fltYPos, fltPlatY1);
+          fltPreJumpPos = fltYPos;
+          fltXPos -= fltPlatS;
+        } else if (canPhaseThroughPlatform(fltXPos, fltXPos2, fltYPos, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2,
+            fltYSpeed)) {
+          fltYSpeed = 0;
+          fltYPos = setPosition(fltYPos, fltPlatY1);
+        } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2 - fltPlatL / 2, fltPlatY1,
+            fltPlatY2)) {
+          fltXSpeed = 0;
+          fltXPos -= fltPlatS;
+          blnSprint = false;
+          blnRight = false;
+        } else if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltPlatX1, fltPlatX2, fltPlatY1, fltPlatY2)) {
+          fltXSpeed = 0;
+          fltXPos = fltPlatX2;
+          blnSprint = false;
+          blnLeft = false;
+        }
       }
     }
   }
@@ -895,7 +913,11 @@ public class Sketch extends PApplet {
       float fltBirdY2 = fltBirdY1 + birds.get(i).getBirdHeight() - 10;
 
       if (isInObject(fltXPos, fltXPos2, fltYPos, fltYPos2, fltBirdX1, fltBirdX2, fltBirdY1, fltBirdY2)) {
-        fltYPos = height + 201;
+        blnCaught = true;
+        blnCrouch = false;
+        fltXPos = fltBirdX1 + birds.get(i).getBirdWidth() / 2 - intWidth / 2;
+        fltYPos = fltBirdY2 - 20;
+        fltYSpeed = birds.get(i).getBirdSpeed();
         blnRight = false;
         blnLeft = false;
       }

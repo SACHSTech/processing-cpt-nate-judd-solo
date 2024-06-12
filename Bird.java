@@ -72,11 +72,19 @@ public class Bird extends Position {
      * 
      * @param birds an array of bird objects
      */
-    public void flyingBird(ArrayList<Bird> birds) {
+    public void flyingBird(ArrayList<Bird> birds, boolean blnCaught) {
+        int intTop = 0;
+
+        if (blnCaught) {
+            intTop = -150;
+        } else {
+            intTop = 0;
+        }
+
         setPosY(getPosY() + intSpeed);
 
-        if (getPosY() < 0) {
-            setPosY(0);
+        if (getPosY() < intTop) {
+            setPosY(intTop);
             intSpeed *= -1;
         } else if (getPosY() > p.height - intHeight) {
             setPosY(p.height - intHeight);
