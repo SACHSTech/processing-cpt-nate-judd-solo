@@ -22,6 +22,7 @@ public class Sketch extends PApplet {
   // Character
   PImage imgMC, imgCrouch, imgCrouchR, imgCrouchL, imgRight, imgLeft, imgKeyR, imgKeyL;
   PImage imgJump, imgJumpR, imgJumpL;
+  PImage imgR1, imgR2, imgL1, imgL2;
   // Sizes
   int intWidth = 60, intHeight = 70, intCrouchHeight = 45, intHeightChange = intHeight - intCrouchHeight;
   // Positions
@@ -30,6 +31,7 @@ public class Sketch extends PApplet {
   float fltXSpeed = 0, fltYSpeed = 0, fltMaxSpeedX = 0, fltMaxSpeedY = 9, fltJumpHeight = 0;
   float fltAccel = 0.3f, fltDecel = 0.2f, fltGravity = 0.3f;
   // Movement
+  int intRunCount = 0;
   boolean blnJump = false, blnLeft = false, blnRight = false, blnSprint = false, blnCrouch = false;
   boolean blnHasCrouched = false, blnChangeDirect = false;
 
@@ -166,8 +168,6 @@ public class Sketch extends PApplet {
       getTime();
       drawTime();
 
-      System.out.println(blnChangeDirect);
-
       // Win screen
     } else if (blnWin) {
       stopMovement();
@@ -219,6 +219,14 @@ public class Sketch extends PApplet {
     imgJumpR.resize(intWidth, intHeight);
     imgJumpL = loadImage("LeftJump.png");
     imgJumpL.resize(intWidth, intHeight);
+    imgR1 = loadImage("Right1.png");
+    imgR1.resize(intWidth, intHeight);
+    imgR2 = loadImage("Right2.png");
+    imgR2.resize(intWidth, intHeight);
+    imgL1 = loadImage("Left1.png");
+    imgL1.resize(intWidth, intHeight);
+    imgL2 = loadImage("Left2.png");
+    imgL2.resize(intWidth, intHeight);
 
     imgJump = imgJumpR;
     imgCrouch = imgCrouchR;
@@ -699,16 +707,12 @@ public class Sketch extends PApplet {
       } else {
         imgMC = imgLeft;
       }
-
-      imgCrouch = imgCrouchL;
     } else if (!blnChangeDirect && !blnLeft && !blnRight && !blnJump) {
       if (blnHasKey) {
         imgMC = imgKeyR;
       } else {
         imgMC = imgRight;
       }
-
-      imgCrouch = imgCrouchR;
     }
 
     if (fltYPos < fltPreJumpPos) {
@@ -725,10 +729,34 @@ public class Sketch extends PApplet {
       imgMC = imgJump;
     }
 
-    if (blnRight && fltYPos > fltPreJumpPos) {
-      imgMC = imgRight;
-    } else if (blnLeft && fltYPos > fltPreJumpPos) {
-      imgMC = imgLeft;
+    if (blnRight && fltYPos > fltPreJumpPos && fltYSpeed < 1) {
+      if (blnSprint) {
+        intRunCount += 2;
+      } else {
+        intRunCount += 1;
+      }
+
+      if (intRunCount <= 15) {
+        imgMC = imgR1;
+      } else if (intRunCount > 15 && intRunCount <= 30) {
+        imgMC = imgR2;
+      } else {
+        intRunCount = 0;
+      }
+    } else if (blnLeft && fltYPos > fltPreJumpPos && fltYSpeed < 1) {
+      if (blnSprint) {
+        intRunCount += 2;
+      } else {
+        intRunCount += 1;
+      }
+
+      if (intRunCount <= 15) {
+        imgMC = imgL1;
+      } else if (intRunCount > 15 && intRunCount <= 30) {
+        imgMC = imgL2;
+      } else {
+        intRunCount = 0;
+      }
     }
   }
 
@@ -740,6 +768,7 @@ public class Sketch extends PApplet {
       fltXSpeed = 0;
 
     } else if (blnRight) {
+      imgCrouch = imgCrouchR;
       blnChangeDirect = false;
       blnStartTime = true;
 
@@ -761,6 +790,7 @@ public class Sketch extends PApplet {
       }
 
     } else if (blnLeft) {
+      imgCrouch = imgCrouchL;
       blnChangeDirect = true;
       blnStartTime = true;
 
@@ -797,6 +827,8 @@ public class Sketch extends PApplet {
           fltXPos += fltXSpeed;
         }
       }
+
+      intRunCount = 0;
     }
   }
 
