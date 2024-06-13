@@ -71,11 +71,11 @@ public class Game {
 
         // Level 5
         levels.add(new GameLevel(
-                5000,
+                4500,
                 "background5.jpg",
                 new Position(50, 550),
                 new Position(2365, 690),
-                new Position(4770, 75),
+                new Position(4270, 75),
                 createStaticPlatforms(5),
                 createMovingPlatforms(5),
                 createBirds(5)));
@@ -141,12 +141,11 @@ public class Game {
         } else if (levelNumber == 5) {
             platforms.add(new Platform(p, 30, 4, 20, 650));
             platforms.add(new Platform(p, 30, 3, 2340, 750));
-            platforms.add(new Platform(p, 30, 4, 4500, 340));
-            platforms.add(new Platform(p, 30, 5, 4770, 225));
+            platforms.add(new Platform(p, 30, 4, 4000, 340));
+            platforms.add(new Platform(p, 30, 5, 4270, 225));
             platforms.add(new Platform(p, 30, 3, 650, 440));
             platforms.add(new Platform(p, 30, 3, 1650, 440));
             platforms.add(new Platform(p, 30, 3, 2650, 440));
-            platforms.add(new Platform(p, 30, 3, 3650, 440));
         }
 
         return platforms;
@@ -220,8 +219,7 @@ public class Game {
             birds.add(new Bird(p, 90, 75, 3, 2500, 0));
             birds.add(new Bird(p, 90, 75, 3, 3000, 800));
             birds.add(new Bird(p, 90, 75, 3, 3500, 0));
-            birds.add(new Bird(p, 90, 75, 3, 4000, 800));
-            birds.add(new Bird(p, 110, 85, 5, 4630, 0));
+            birds.add(new Bird(p, 110, 85, 5, 4130, 0));
         }
 
         return birds;
