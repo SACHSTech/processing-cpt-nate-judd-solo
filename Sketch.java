@@ -704,7 +704,11 @@ public class Sketch extends PApplet {
    */
   public void updateCharacterImage() {
     if (blnCaught) {
+      blnRight = false;
+      blnLeft = false;
+      blnJump = false;
       blnCrouch = false;
+      fltXSpeed = 0;
       imgMC = imgCaught;
     } else {
       if (blnChangeDirect && !blnLeft && !blnRight && !blnJump) {
